@@ -13,6 +13,16 @@ export interface Listing {
   floor: number | null
   totalFloors: number | null
   yearBuilt: number | null
+  monthlyFee: number | null
+  propertyType: string | null
+  marketType: string | null
+  condition: string | null
+  heatingType: string | null
+  hasBalcony: boolean | null
+  hasParking: boolean | null
+  hasGarden: boolean | null
+  hasElevator: boolean | null
+  extras: Record<string, unknown> | null
   city: string | null
   district: string | null
   address: string | null

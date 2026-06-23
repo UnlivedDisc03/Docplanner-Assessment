@@ -24,29 +24,43 @@ model Listing {
   source      String
   url         String     @unique
 
-  title       String
-  description String     @db.Text
-  price       Int?
-  pricePerSqm Int?
-  currency    String     @default("PLN")
-  area        Float?
-  rooms       Int?
-  floor       Int?
-  totalFloors Int?
-  yearBuilt   Int?
+  title        String
+  description  String     @db.Text
+  price        Int?
+  pricePerSqm  Int?
+  currency     String     @default("PLN")
+  area         Float?
+  rooms        Int?
+  floor        Int?
+  totalFloors  Int?
+  yearBuilt    Int?
 
-  city        String?
-  district    String?
-  address     String?
-  lat         Float?
-  lng         Float?
+  // Extended fields from data analysis
+  monthlyFee   Int?
+  propertyType String?
+  marketType   String?
+  condition    String?
+  heatingType  String?
+  hasBalcony   Boolean?
+  hasParking   Boolean?
+  hasGarden    Boolean?
+  hasElevator  Boolean?
+  extras       Json?
 
-  images      String     @db.Text
+  city         String?
+  district     String?
+  address      String?
+  lat          Float?
+  lng          Float?
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  images       String     @db.Text
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
   @@index([city])
   @@index([price])
   @@index([area])
+  @@index([propertyType])
+  @@index([marketType])
 }

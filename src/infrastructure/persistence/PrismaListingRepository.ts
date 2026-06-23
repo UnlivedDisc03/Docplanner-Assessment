@@ -6,8 +6,13 @@ type ListingRow = {
   id: number; rawId: number; source: string; url: string; title: string;
   description: string; price: number | null; pricePerSqm: number | null;
   currency: string; area: number | null; rooms: number | null; floor: number | null;
-  totalFloors: number | null; yearBuilt: number | null; city: string | null;
-  district: string | null; address: string | null; lat: number | null; lng: number | null;
+  totalFloors: number | null; yearBuilt: number | null;
+  monthlyFee: number | null; propertyType: string | null; marketType: string | null;
+  condition: string | null; heatingType: string | null;
+  hasBalcony: boolean | null; hasParking: boolean | null; hasGarden: boolean | null; hasElevator: boolean | null;
+  extras: unknown;
+  city: string | null; district: string | null; address: string | null;
+  lat: number | null; lng: number | null;
   images: string; createdAt: Date; updatedAt: Date;
 }
 
@@ -41,7 +46,7 @@ export class PrismaListingRepository implements ListingRepository {
   }
 
   async saveListing(rawId: number, data: ListingInput): Promise<void> {
-    const payload = { ...data, images: JSON.stringify(data.images) }
+    const payload = { ...data, images: JSON.stringify(data.images), extras: data.extras ?? undefined }
     await prisma.listing.upsert({
       where: { rawId },
       update: payload,
@@ -78,6 +83,10 @@ export class PrismaListingRepository implements ListingRepository {
   }
 
   private mapRow(row: ListingRow): Listing {
-    return { ...row, images: JSON.parse(row.images || '[]') }
+    return {
+      ...row,
+      images: JSON.parse(row.images || '[]'),
+      extras: (row.extras as Record<string, unknown>) ?? null,
+    }
   }
 }
