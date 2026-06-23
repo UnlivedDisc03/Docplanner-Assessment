@@ -6,8 +6,14 @@ function formatPrice(price: number | null, currency: string) {
   return new Intl.NumberFormat('pl-PL', { style: 'currency', currency, maximumFractionDigits: 0 }).format(price)
 }
 
+const LOGO_PATTERNS = ['s=314x236', 's=256x', 'thumbnail', 'thumbs120', 'logo', 'icon', 'avatar', 'agent']
+
+function isListingPhoto(src: string) {
+  return !LOGO_PATTERNS.some(p => src.includes(p))
+}
+
 function getBestImage(images: string[]) {
-  return images.find(src => !src.includes('s=314x236') && !src.includes('thumbnail')) ?? images[0]
+  return images.find(isListingPhoto) ?? images.find(src => !src.includes('s=314x236')) ?? images[0]
 }
 
 function Badge({ variant, label }: { variant: 'primary' | 'secondary', label: string }) {

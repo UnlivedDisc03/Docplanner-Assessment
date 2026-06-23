@@ -48,7 +48,18 @@ export abstract class BaseScraper {
       if (!structured) parts.push(bodyText);
       var text = parts.join('\\n').slice(0, 6000);
 
-      var images = Array.from(document.querySelectorAll('img')).map(function(img) {
+      var agentPattern = /agent|agency|avatar|profile|biuro|deweloper|developer|contact|broker|realtor|company|logo|icon|brand/i;
+
+      var images = Array.from(document.querySelectorAll('img')).filter(function(img) {
+        var el = img;
+        for (var d = 0; d < 6; d++) {
+          if (!el.parentElement) break;
+          el = el.parentElement;
+          var cls = (el.className || '') + ' ' + (el.getAttribute('data-testid') || '') + ' ' + (el.id || '');
+          if (agentPattern.test(cls)) return false;
+        }
+        return true;
+      }).map(function(img) {
         if (img.srcset) {
           var parts = img.srcset.split(',').map(function(s) { return s.trim().split(/\\s+/); });
           var sorted = parts
@@ -62,7 +73,9 @@ export abstract class BaseScraper {
       }).filter(function(src) {
         return src && src.startsWith('http') &&
           !src.includes('icon') && !src.includes('logo') &&
+          !src.includes('avatar') && !src.includes('agent') &&
           !src.includes('s=314x236') && !src.includes('s=256x') &&
+          !src.includes('thumbs120') &&
           !src.includes('thumbnail') && src.length > 20;
       }).filter(function(src, i, arr) { return arr.indexOf(src) === i; }).slice(0, 20);
 

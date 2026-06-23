@@ -42,7 +42,8 @@ export default async function ListingPage(props: PageProps<'/listing/[id]'>) {
   const listing = await useCase.execute(Number(id))
   if (!listing) notFound()
 
-  const goodImages = listing.images.filter(src => !src.includes('s=314x236') && !src.includes('thumbnail') && !src.includes('s=256x'))
+  const badPatterns = ['s=314x236', 's=256x', 'thumbnail', 'thumbs120', 'logo', 'icon', 'avatar', 'agent']
+  const goodImages = listing.images.filter(src => !badPatterns.some(p => src.includes(p)))
   const price = formatPrice(listing.price, listing.currency)
   const location = [listing.address, listing.district, listing.city].filter(Boolean).join(', ')
 
