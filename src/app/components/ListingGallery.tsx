@@ -18,14 +18,14 @@ export function ListingGallery({ images, title }: Props) {
       <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden mb-6 h-[440px]">
         {/* Main image */}
         <div
-          className="col-span-2 overflow-hidden cursor-zoom-in"
+          className="col-span-2 relative bg-black cursor-zoom-in overflow-hidden"
           onClick={() => setLightboxIndex(0)}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={images[0]}
             alt={title}
-            className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300"
+            className="absolute inset-0 w-full h-full object-contain hover:scale-[1.02] transition-transform duration-300"
           />
         </div>
 
@@ -33,27 +33,27 @@ export function ListingGallery({ images, title }: Props) {
         <div className="grid grid-rows-2 gap-1">
           {images[1] && (
             <div
-              className="overflow-hidden cursor-zoom-in"
+              className="relative bg-black cursor-zoom-in overflow-hidden"
               onClick={() => setLightboxIndex(1)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={images[1]}
                 alt=""
-                className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300"
+                className="absolute inset-0 w-full h-full object-contain hover:scale-[1.02] transition-transform duration-300"
               />
             </div>
           )}
           {images[2] && (
             <div
-              className="overflow-hidden relative cursor-zoom-in"
+              className="relative bg-black cursor-zoom-in overflow-hidden"
               onClick={() => setLightboxIndex(2)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={images[2]}
                 alt=""
-                className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300"
+                className="absolute inset-0 w-full h-full object-contain hover:scale-[1.02] transition-transform duration-300"
               />
               {images.length > 3 && (
                 <div className="absolute inset-0 bg-black/45 flex items-center justify-center text-white font-semibold text-base pointer-events-none">

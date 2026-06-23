@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useRef } from 'react'
+import { FiltersDropdown } from './FiltersDropdown'
 
 interface Props {
   total: number
@@ -67,6 +68,7 @@ export function FilterBar({ total }: Props) {
           <option value="primary">Pierwotny</option>
           <option value="secondary">Wtórny</option>
         </select>
+        <FiltersDropdown />
         <span className="ml-auto text-sm text-[#888] shrink-0">{total.toLocaleString('pl-PL')} ofert</span>
       </div>
     </div>

@@ -20,6 +20,13 @@ export default async function HomePage({ searchParams }: Props) {
     areaMax: sp.areaMax ? Number(sp.areaMax) : undefined,
     rooms: sp.rooms ? Number(sp.rooms) : undefined,
     marketType: sp.marketType as 'primary' | 'secondary' | undefined,
+    propertyTypes: sp.propertyTypes ? sp.propertyTypes.split(',') : undefined,
+    conditions: sp.conditions ? sp.conditions.split(',') : undefined,
+    hasBalcony: sp.hasBalcony === '1' || undefined,
+    hasParking: sp.hasParking === '1' || undefined,
+    hasGarden: sp.hasGarden === '1' || undefined,
+    hasElevator: sp.hasElevator === '1' || undefined,
+    hasExtras: sp.hasExtras === '1' || undefined,
     page: 1,
     limit: 20,
   }

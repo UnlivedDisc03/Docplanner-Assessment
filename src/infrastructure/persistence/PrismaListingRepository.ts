@@ -93,6 +93,13 @@ export class PrismaListingRepository implements ListingRepository {
         ...(filters.areaMax != null && { lte: filters.areaMax }),
       }
     }
+    if (filters.propertyTypes?.length) where.propertyType = { in: filters.propertyTypes }
+    if (filters.conditions?.length) where.condition = { in: filters.conditions }
+    if (filters.hasBalcony) where.hasBalcony = true
+    if (filters.hasParking) where.hasParking = true
+    if (filters.hasGarden) where.hasGarden = true
+    if (filters.hasElevator) where.hasElevator = true
+    if (filters.hasExtras) where.extras = { not: null }
     return where
   }
 

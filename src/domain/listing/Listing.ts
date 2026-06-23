@@ -42,6 +42,13 @@ export interface ListingFilters {
   areaMax?: number
   rooms?: number
   marketType?: 'primary' | 'secondary'
+  propertyTypes?: string[]
+  conditions?: string[]
+  hasBalcony?: boolean
+  hasParking?: boolean
+  hasGarden?: boolean
+  hasElevator?: boolean
+  hasExtras?: boolean
   page?: number
   limit?: number
 }
