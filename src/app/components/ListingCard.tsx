@@ -53,9 +53,8 @@ const PhotoIcon = () => (
 )
 
 export function ListingCard({ listing }: { listing: Listing }) {
-  const candidates = listing.images.filter(src => !LOGO_PATTERNS.some(p => src.includes(p)))
-  const [imgIndex, setImgIndex] = useState(0)
-  const image = candidates[imgIndex] ?? null
+  const [imgFailed, setImgFailed] = useState(false)
+  const image = imgFailed ? null : getBestImage(listing.images)
   const location = [listing.district, listing.city].filter(Boolean).join(', ')
 
   const floorLabel = listing.floor == null ? null
@@ -79,7 +78,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
             src={image}
             alt={listing.title}
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
-            onError={() => setImgIndex(i => i + 1)}
+            onError={() => setImgFailed(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[#aaa] text-sm">Brak zdjęcia</div>

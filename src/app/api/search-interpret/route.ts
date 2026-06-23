@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     temperature: 0,
   })
 
-  const toolCall = response.choices[0].message.tool_calls?.[0]
+  const toolCall = response.choices[0].message.tool_calls?.[0] as { function: { arguments: string } } | undefined
   if (!toolCall) return Response.json({ params: {} })
 
   const args = JSON.parse(toolCall.function.arguments) as Record<string, unknown>

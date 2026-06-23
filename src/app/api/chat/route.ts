@@ -42,12 +42,8 @@ const SEARCH_TOOL = {
   },
 }
 
-type OpenAIMessage = {
-  role: 'user' | 'assistant' | 'tool' | 'system'
-  content: string | null
-  tool_calls?: unknown[]
-  tool_call_id?: string
-}
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
+type OpenAIMessage = ChatCompletionMessageParam
 
 export async function POST(request: NextRequest) {
   const { messages } = await request.json() as { messages: OpenAIMessage[] }
