@@ -48,6 +48,14 @@ export class OpenAIListingNormalizer implements ListingNormalizer {
     })
 
     const content = response.choices[0]?.message?.content ?? '{}'
-    return JSON.parse(content) as NormalizedListing
+    const parsed = JSON.parse(content) as NormalizedListing
+    if (typeof parsed.description === 'string') {
+      parsed.description = parsed.description
+        .replace(/<\/p>/gi, '\n\n').replace(/<br\s*\/?>/gi, '\n').replace(/<\/li>/gi, '\n')
+        .replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ')
+        .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+        .replace(/\n{3,}/g, '\n\n').trim()
+    }
+    return parsed
   }
 }

@@ -124,7 +124,7 @@ export default async function ListingPage(props: PageProps<'/listing/[id]'>) {
           {/* Description */}
           <h2 className="text-base font-bold text-[#1a1a1a] mb-3">Opis</h2>
           {listing.description
-            ? <p className="text-sm text-[#444] leading-relaxed whitespace-pre-line">{listing.description}</p>
+            ? <p className="text-sm text-[#444] leading-relaxed whitespace-pre-line">{stripHtml(listing.description)}</p>
             : <p className="text-sm text-[#bbb] italic">Brak opisu</p>
           }
 
