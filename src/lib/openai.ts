@@ -12,6 +12,6 @@ export function getOpenAI(): OpenAI {
 /** @deprecated Use getOpenAI() instead */
 export const openai: OpenAI = new Proxy({} as OpenAI, {
   get(_target, prop) {
-    return (getOpenAI() as Record<string | symbol, unknown>)[prop]
+    return (getOpenAI() as unknown as Record<string | symbol, unknown>)[prop]
   },
 })

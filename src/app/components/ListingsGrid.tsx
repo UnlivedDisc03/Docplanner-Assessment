@@ -15,26 +15,34 @@ export function ListingsGrid({ initialListings, initialTotal, searchParams }: Pr
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(initialListings.length < initialTotal)
   const [loading, setLoading] = useState(false)
+  const loadingRef = useRef(false)
   const sentinelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setListings(initialListings)
     setPage(1)
     setHasMore(initialListings.length < initialTotal)
+    loadingRef.current = false
   }, [initialListings, initialTotal])
 
   const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return
+    if (loadingRef.current || !hasMore) return
+    loadingRef.current = true
     setLoading(true)
     const nextPage = page + 1
     const params = new URLSearchParams({ ...searchParams, page: String(nextPage), limit: '20' })
     const res = await fetch(`/api/listings?${params}`)
     const data = await res.json()
-    setListings(prev => [...prev, ...data.data])
+    setListings(prev => {
+      const existingIds = new Set(prev.map(l => l.id))
+      const fresh = (data.data as Listing[]).filter(l => !existingIds.has(l.id))
+      return [...prev, ...fresh]
+    })
     setPage(nextPage)
     setHasMore(nextPage < data.totalPages)
+    loadingRef.current = false
     setLoading(false)
-  }, [loading, hasMore, page, searchParams])
+  }, [hasMore, page, searchParams])
 
   useEffect(() => {
     const el = sentinelRef.current

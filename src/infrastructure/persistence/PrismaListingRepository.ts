@@ -1,4 +1,5 @@
-import { prisma } from '@/lib/prisma'
+import { type PrismaClient, Prisma } from '@prisma/client'
+import { prisma as defaultPrisma } from '@/lib/prisma'
 import type { ListingRepository, RawListingInput, UnprocessedRaw, ListingInput } from '@/domain/listing/ListingRepository'
 import type { Listing, ListingFilters, PaginatedListings } from '@/domain/listing/Listing'
 
@@ -17,6 +18,12 @@ type ListingRow = {
 }
 
 export class PrismaListingRepository implements ListingRepository {
+  private readonly prisma: PrismaClient
+
+  constructor(client?: PrismaClient) {
+    this.prisma = client ?? defaultPrisma
+  }
+
   async findAll(filters: ListingFilters): Promise<PaginatedListings> {
     const page = filters.page ?? 1
     const limit = filters.limit ?? 20
@@ -24,23 +31,23 @@ export class PrismaListingRepository implements ListingRepository {
     const where = this.buildWhere(filters)
 
     const [rows, total] = await Promise.all([
-      prisma.listing.findMany({ where, skip, take: limit, orderBy: { createdAt: 'desc' } }),
-      prisma.listing.count({ where }),
+      this.prisma.listing.findMany({ where, skip, take: limit, orderBy: { createdAt: 'desc' } }),
+      this.prisma.listing.count({ where }),
     ])
 
     return { data: rows.map(r => this.mapRow(r as ListingRow)), total, page, totalPages: Math.ceil(total / limit) }
   }
 
   async findById(id: number): Promise<Listing | null> {
-    const row = await prisma.listing.findUnique({ where: { id } })
+    const row = await this.prisma.listing.findUnique({ where: { id } })
     return row ? this.mapRow(row as ListingRow) : null
   }
 
   async saveRaw(data: RawListingInput): Promise<number> {
-    const row = await prisma.rawListing.upsert({
+    const row = await this.prisma.rawListing.upsert({
       where: { url: data.url },
-      update: { rawJson: data.rawJson, rawHtml: data.rawHtml },
-      create: { source: data.source, url: data.url, rawJson: data.rawJson, rawHtml: data.rawHtml },
+      update: { rawJson: data.rawJson as Prisma.InputJsonValue, rawHtml: data.rawHtml },
+      create: { source: data.source, url: data.url, rawJson: data.rawJson as Prisma.InputJsonValue, rawHtml: data.rawHtml },
     })
     return row.id
   }
@@ -51,9 +58,9 @@ export class PrismaListingRepository implements ListingRepository {
       title: data.title ?? 'Bez tytułu',
       description: data.description ?? '',
       images: JSON.stringify(data.images),
-      extras: data.extras ?? undefined,
+      extras: data.extras != null ? (data.extras as Prisma.InputJsonValue) : Prisma.DbNull,
     }
-    await prisma.listing.upsert({
+    await this.prisma.listing.upsert({
       where: { rawId },
       update: payload,
       create: { rawId, ...payload },
@@ -61,7 +68,7 @@ export class PrismaListingRepository implements ListingRepository {
   }
 
   async findUnprocessedRaw(): Promise<UnprocessedRaw[]> {
-    const rows = await prisma.rawListing.findMany({ where: { listing: null } })
+    const rows = await this.prisma.rawListing.findMany({ where: { listing: null } })
     return rows.map(r => ({ id: r.id, source: r.source, url: r.url, rawJson: r.rawJson }))
   }
 
