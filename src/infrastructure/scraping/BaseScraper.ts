@@ -20,70 +20,54 @@ export abstract class BaseScraper {
   }
 
   protected async extractPageContent(page: Page): Promise<{ text: string; images: string[] }> {
-    return page.evaluate(() => {
-      // 1. JSON-LD structured data (most reliable source)
-      const jsonLdBlocks: Record<string, unknown>[] = []
-      document.querySelectorAll('script[type="application/ld+json"]').forEach(el => {
-        try { jsonLdBlocks.push(JSON.parse(el.textContent ?? '')) } catch {}
-      })
+    // Pass as string so tsx/esbuild never transforms the browser-context code
+    return page.evaluate(`(function() {
+      var jsonLdBlocks = [];
+      document.querySelectorAll('script[type="application/ld+json"]').forEach(function(el) {
+        try { jsonLdBlocks.push(JSON.parse(el.textContent || '')); } catch(e) {}
+      });
 
-      // 2. OpenGraph / meta tags
-      const meta = (name: string) =>
-        (document.querySelector(`meta[property="${name}"]`) as HTMLMetaElement)?.content ??
-        (document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement)?.content ?? ''
-
-      const ogData = {
-        title: meta('og:title') || document.title,
-        description: meta('og:description') || meta('description'),
-        price: meta('product:price:amount') || meta('og:price:amount'),
-        currency: meta('product:price:currency') || meta('og:price:currency'),
+      function getMeta(name) {
+        var byProp = document.querySelector('meta[property="' + name + '"]');
+        var byName = document.querySelector('meta[name="' + name + '"]');
+        return (byProp && byProp.content) || (byName && byName.content) || '';
       }
 
-      // 3. Fallback: visible body text, trimmed aggressively
-      const bodyText = (document.body.innerText ?? '').slice(0, 3000)
+      var structured = jsonLdBlocks.length > 0 ? JSON.stringify(jsonLdBlocks) : '';
+      var ogTitle = getMeta('og:title') || document.title;
+      var ogDesc = getMeta('og:description') || getMeta('description');
+      var ogPrice = getMeta('product:price:amount') || getMeta('og:price:amount');
+      var ogCurrency = getMeta('product:price:currency') || getMeta('og:price:currency');
+      var bodyText = (document.body.innerText || '').slice(0, 3000);
 
-      const structured = jsonLdBlocks.length > 0
-        ? JSON.stringify(jsonLdBlocks)
-        : ''
+      var parts = [];
+      if (structured) parts.push(structured);
+      if (ogTitle) parts.push('Title: ' + ogTitle);
+      if (ogDesc) parts.push('Description: ' + ogDesc);
+      if (ogPrice) parts.push('Price: ' + ogPrice + ' ' + ogCurrency);
+      if (!structured) parts.push(bodyText);
+      var text = parts.join('\\n').slice(0, 6000);
 
-      const text = [
-        structured,
-        ogData.title ? `Title: ${ogData.title}` : '',
-        ogData.description ? `Description: ${ogData.description}` : '',
-        ogData.price ? `Price: ${ogData.price} ${ogData.currency}` : '',
-        !structured ? bodyText : '',
-      ].filter(Boolean).join('\n').slice(0, 6000)
-
-      // 4. Images — prefer srcset largest, then data-src, then src
-      const bestSrc = (img: HTMLImageElement): string => {
+      var images = Array.from(document.querySelectorAll('img')).map(function(img) {
         if (img.srcset) {
-          const parts = img.srcset.split(',').map(s => s.trim().split(/\s+/))
-          const sorted = parts
-            .filter(p => p[0]?.startsWith('http'))
-            .sort((a, b) => parseFloat(b[1] ?? '0') - parseFloat(a[1] ?? '0'))
-          if (sorted[0]?.[0]) return sorted[0][0]
+          var parts = img.srcset.split(',').map(function(s) { return s.trim().split(/\\s+/); });
+          var sorted = parts
+            .filter(function(p) { return p[0] && p[0].startsWith('http'); })
+            .sort(function(a, b) { return parseFloat(b[1] || '0') - parseFloat(a[1] || '0'); });
+          if (sorted[0] && sorted[0][0]) return sorted[0][0];
         }
-        const dataSrc = img.getAttribute('data-src') ?? img.getAttribute('data-lazy-src')
-        if (dataSrc?.startsWith('http')) return dataSrc
-        return img.src
-      }
+        var dataSrc = img.getAttribute('data-src') || img.getAttribute('data-lazy-src');
+        if (dataSrc && dataSrc.startsWith('http')) return dataSrc;
+        return img.src;
+      }).filter(function(src) {
+        return src && src.startsWith('http') &&
+          !src.includes('icon') && !src.includes('logo') &&
+          !src.includes('s=314x236') && !src.includes('s=256x') &&
+          !src.includes('thumbnail') && src.length > 20;
+      }).filter(function(src, i, arr) { return arr.indexOf(src) === i; }).slice(0, 20);
 
-      const images = Array.from(document.querySelectorAll('img'))
-        .map(bestSrc)
-        .filter(src =>
-          src.startsWith('http') &&
-          !src.includes('icon') &&
-          !src.includes('logo') &&
-          !src.includes('s=314x236') &&
-          !src.includes('s=256x') &&
-          !src.includes('thumbnail') &&
-          src.length > 20
-        )
-        .filter((src, i, arr) => arr.indexOf(src) === i)
-        .slice(0, 20)
-
-      return { text, images }
-    })
+      return { text: text, images: images };
+    })()`) as Promise<{ text: string; images: string[] }>
   }
 
   protected delay(ms: number): Promise<void> {

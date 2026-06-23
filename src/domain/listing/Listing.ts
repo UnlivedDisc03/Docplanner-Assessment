@@ -41,6 +41,7 @@ export interface ListingFilters {
   areaMin?: number
   areaMax?: number
   rooms?: number
+  marketType?: 'primary' | 'secondary'
   page?: number
   limit?: number
 }

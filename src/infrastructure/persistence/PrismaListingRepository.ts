@@ -73,6 +73,7 @@ export class PrismaListingRepository implements ListingRepository {
     ]
     if (filters.city) where.city = { contains: filters.city }
     if (filters.rooms != null) where.rooms = filters.rooms
+    if (filters.marketType) where.marketType = filters.marketType
     if (filters.priceMin != null || filters.priceMax != null) {
       where.price = {
         ...(filters.priceMin != null && { gte: filters.priceMin }),

@@ -47,7 +47,7 @@ export function ListingsGrid({ initialListings, initialTotal, searchParams }: Pr
   }, [loadMore])
 
   if (listings.length === 0) {
-    return <p className="text-center text-gray-500 py-16">Brak ogłoszeń spełniających kryteria.</p>
+    return <p className="text-center text-[#888] py-16">Brak ogłoszeń spełniających kryteria.</p>
   }
 
   return (
@@ -55,8 +55,8 @@ export function ListingsGrid({ initialListings, initialTotal, searchParams }: Pr
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {listings.map(listing => <ListingCard key={listing.id} listing={listing} />)}
       </div>
-      <div ref={sentinelRef} className="h-8 flex items-center justify-center">
-        {loading && <span className="text-sm text-gray-400">Ładowanie...</span>}
+      <div ref={sentinelRef} className="h-10 flex items-center justify-center">
+        {loading && <span className="text-sm text-[#aaa]">Ładowanie...</span>}
       </div>
     </>
   )

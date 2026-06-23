@@ -19,6 +19,7 @@ export default async function HomePage({ searchParams }: Props) {
     areaMin: sp.areaMin ? Number(sp.areaMin) : undefined,
     areaMax: sp.areaMax ? Number(sp.areaMax) : undefined,
     rooms: sp.rooms ? Number(sp.rooms) : undefined,
+    marketType: sp.marketType as 'primary' | 'secondary' | undefined,
     page: 1,
     limit: 20,
   }
@@ -28,17 +29,13 @@ export default async function HomePage({ searchParams }: Props) {
   const { data, total } = await useCase.execute(filters)
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Ogłoszenia nieruchomości</h1>
-        <p className="text-sm text-gray-500">{total} ofert</p>
+    <>
+      <Suspense fallback={<div className="h-[52px] bg-white border-b border-[#e8e8e8] sticky top-[60px] z-[99]" />}>
+        <FilterBar total={total} />
+      </Suspense>
+      <div className="max-w-[1280px] mx-auto px-6 py-5">
+        <ListingsGrid initialListings={data} initialTotal={total} searchParams={sp} />
       </div>
-      <div className="mb-5">
-        <Suspense>
-          <FilterBar />
-        </Suspense>
-      </div>
-      <ListingsGrid initialListings={data} initialTotal={total} searchParams={sp} />
-    </div>
+    </>
   )
 }

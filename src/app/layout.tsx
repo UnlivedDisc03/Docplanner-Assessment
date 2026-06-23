@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
+import { Suspense } from 'react'
+import { HeaderSearch } from './components/HeaderSearch'
 import './globals.css'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
@@ -12,16 +14,23 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pl" className={`${geist.variable} h-full`}>
-      <body className="min-h-full flex flex-col bg-gray-50 antialiased font-[var(--font-geist)]">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
-            <a href="/" className="text-emerald-600 font-bold text-lg tracking-tight">NieruchomościPL</a>
+      <body className="min-h-full flex flex-col bg-[#f5f5f5] antialiased font-[var(--font-geist)]">
+        <header className="bg-[#1C1C21] sticky top-0 z-10 h-[60px]">
+          <div className="max-w-[1280px] mx-auto px-6 h-full flex items-center gap-6">
+            <a href="/" className="text-white font-bold text-lg tracking-tight shrink-0">
+              Nieru<span className="text-[#00C97A]">chomo</span>ściPL
+            </a>
+            <Suspense fallback={<div className="flex-1 max-w-[500px] h-[38px]" />}>
+              <HeaderSearch />
+            </Suspense>
+            <nav className="flex items-center gap-5 shrink-0 ml-auto">
+              <a href="/" className="text-[#ccc] hover:text-white text-sm transition-colors">Sprzedaż</a>
+              <a href="/" className="text-[#ccc] hover:text-white text-sm transition-colors">Wynajem</a>
+              <a href="/" className="text-[#ccc] hover:text-white text-sm transition-colors">Nowe budynki</a>
+            </nav>
           </div>
         </header>
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-gray-200 bg-white py-6 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} NieruchomościPL
-        </footer>
       </body>
     </html>
   )

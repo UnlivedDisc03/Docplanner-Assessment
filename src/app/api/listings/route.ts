@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     areaMin: sp.has('areaMin') ? Number(sp.get('areaMin')) : undefined,
     areaMax: sp.has('areaMax') ? Number(sp.get('areaMax')) : undefined,
     rooms: sp.has('rooms') ? Number(sp.get('rooms')) : undefined,
+    marketType: (sp.get('marketType') as 'primary' | 'secondary') || undefined,
     page: sp.has('page') ? Number(sp.get('page')) : 1,
     limit: sp.has('limit') ? Number(sp.get('limit')) : 20,
   }

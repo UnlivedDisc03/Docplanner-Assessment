@@ -14,7 +14,7 @@ export class RealtingScraper extends BaseScraper implements IScraper {
       const urls: string[] = await indexPage.evaluate(() => {
         const links = Array.from(document.querySelectorAll('a')) as HTMLAnchorElement[]
         return [...new Set(
-          links.map(a => a.href).filter(h => h.includes('realting.com') && (h.includes('/property/') || h.includes('/real-estate/')))
+          links.map(a => a.href).filter(h => /realting\.com\/[a-z-]+\/property\/\d+$/.test(h))
         )].slice(0, 35)
       })
       await indexPage.close()
