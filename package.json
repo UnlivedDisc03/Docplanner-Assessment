@@ -8,7 +8,8 @@
     "start": "next start",
     "test": "jest",
     "scrape": "tsx scripts/scrape.ts",
-    "scrape:krakow": "tsx scripts/scrape-krakow.ts"
+    "scrape:krakow": "tsx scripts/scrape-krakow.ts",
+    "normalize": "tsx scripts/normalize.ts"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.8.0",

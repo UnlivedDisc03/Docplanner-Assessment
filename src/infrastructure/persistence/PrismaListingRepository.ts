@@ -46,7 +46,13 @@ export class PrismaListingRepository implements ListingRepository {
   }
 
   async saveListing(rawId: number, data: ListingInput): Promise<void> {
-    const payload = { ...data, images: JSON.stringify(data.images), extras: data.extras ?? undefined }
+    const payload = {
+      ...data,
+      title: data.title ?? 'Bez tytułu',
+      description: data.description ?? '',
+      images: JSON.stringify(data.images),
+      extras: data.extras ?? undefined,
+    }
     await prisma.listing.upsert({
       where: { rawId },
       update: payload,
