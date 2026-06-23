@@ -11,7 +11,14 @@ interface Props {
 export function ListingGallery({ images, title }: Props) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
-  if (images.length === 0) return null
+  if (images.length === 0) return (
+    <div className="rounded-xl bg-[#f0f0f0] h-[200px] flex flex-col items-center justify-center gap-2 mb-6 text-[#bbb]">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <span className="text-sm italic">Brak zdjęć</span>
+    </div>
+  )
 
   return (
     <>

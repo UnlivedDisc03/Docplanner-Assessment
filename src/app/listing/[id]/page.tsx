@@ -6,6 +6,22 @@ import { GetListingById } from '@/application/listing/GetListingById'
 import { ListingGallery } from '@/app/components/ListingGallery'
 
 // ── helpers ──────────────────────────────────────────────────────────────────
+function stripHtml(html: string): string {
+  return html
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 function formatPrice(price: number | null, currency: string) {
   if (!price) return 'Cena na zapytanie'
   return new Intl.NumberFormat('pl-PL', {
@@ -16,21 +32,27 @@ function formatPrice(price: number | null, currency: string) {
 }
 
 function StatBox({ label, value }: { label: string; value: React.ReactNode }) {
-  if (value == null || value === '') return null
+  const empty = value == null || value === ''
   return (
-    <div className="p-3.5 border-r border-b border-[#ececec] last:border-r-0 [&:nth-last-child(-n+2)]:border-b-0">
+    <div className="p-3.5 border-r border-[#ececec] last:border-r-0">
       <div className="text-[10px] text-[#999] uppercase tracking-wider">{label}</div>
-      <div className="text-lg font-bold text-[#1a1a1a] mt-0.5">{value}</div>
+      {empty
+        ? <div className="text-base text-[#bbb] italic mt-0.5">Nie podano</div>
+        : <div className="text-lg font-bold text-[#1a1a1a] mt-0.5">{value}</div>
+      }
     </div>
   )
 }
 
-function DetailRow({ label, value }: { label: string; value?: string | number | null }) {
-  if (value == null) return null
+function DetailRow({ label, value, fallback }: { label: string; value?: string | number | null; fallback?: boolean }) {
+  if (value == null && !fallback) return null
   return (
     <div className="flex justify-between py-3 border-b border-[#f0f0f0] text-sm last:border-b-0">
       <span className="text-[#999]">{label}</span>
-      <span className="font-medium text-[#1a1a1a]">{value}</span>
+      {value != null
+        ? <span className="font-medium text-[#1a1a1a]">{value}</span>
+        : <span className="text-[#bbb] italic">Nie podano</span>
+      }
     </div>
   )
 }
@@ -42,7 +64,7 @@ export default async function ListingPage(props: PageProps<'/listing/[id]'>) {
   const listing = await useCase.execute(Number(id))
   if (!listing) notFound()
 
-  const badPatterns = ['s=314x236', 's=256x', 'thumbnail', 'thumbs120', 'logo', 'icon', 'avatar', 'agent']
+  const badPatterns = ['s=314x236', 's=256x', 'thumbnail', 'logo', 'icon', 'avatar', 'agent']
   const goodImages = listing.images.filter(src => !badPatterns.some(p => src.includes(p)))
   const price = formatPrice(listing.price, listing.currency)
   const location = [listing.address, listing.district, listing.city].filter(Boolean).join(', ')
@@ -101,30 +123,33 @@ export default async function ListingPage(props: PageProps<'/listing/[id]'>) {
 
           {/* Description */}
           <h2 className="text-base font-bold text-[#1a1a1a] mb-3">Opis</h2>
-          <p className="text-sm text-[#444] leading-relaxed whitespace-pre-line">{listing.description}</p>
+          {listing.description
+            ? <p className="text-sm text-[#444] leading-relaxed whitespace-pre-line">{listing.description}</p>
+            : <p className="text-sm text-[#bbb] italic">Brak opisu</p>
+          }
 
           {/* Amenities */}
-          {amenities.length > 0 && (
-            <>
-              <div className="border-t border-[#ececec] my-5" />
-              <h2 className="text-base font-bold text-[#1a1a1a] mb-3">Udogodnienia</h2>
-              <div className="flex flex-wrap gap-2">
-                {amenities.map(a => (
-                  <span key={a} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f5f5f5] rounded-lg text-sm text-[#333]">{a}</span>
-                ))}
-              </div>
-            </>
+          <div className="border-t border-[#ececec] my-5" />
+          <h2 className="text-base font-bold text-[#1a1a1a] mb-3">Udogodnienia</h2>
+          {amenities.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {amenities.map(a => (
+                <span key={a} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f5f5f5] rounded-lg text-sm text-[#333]">{a}</span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-[#bbb] italic">Nie podano</p>
           )}
 
           {/* Details grid */}
           <div className="border-t border-[#ececec] my-5" />
           <h2 className="text-base font-bold text-[#1a1a1a] mb-3">Szczegóły ogłoszenia</h2>
           <div className="border border-[#ececec] rounded-xl overflow-hidden">
-            <DetailRow label="Typ nieruchomości" value={listing.propertyType} />
-            <DetailRow label="Rynek" value={marketLabel} />
-            <DetailRow label="Stan wykończenia" value={listing.condition ? conditionLabel[listing.condition] : null} />
-            <DetailRow label="Ogrzewanie" value={listing.heatingType ? heatingLabel[listing.heatingType] : null} />
-            <DetailRow label="Rok budowy" value={listing.yearBuilt} />
+            <DetailRow label="Typ nieruchomości" value={listing.propertyType} fallback />
+            <DetailRow label="Rynek" value={marketLabel} fallback />
+            <DetailRow label="Stan wykończenia" value={listing.condition ? conditionLabel[listing.condition] : null} fallback />
+            <DetailRow label="Ogrzewanie" value={listing.heatingType ? heatingLabel[listing.heatingType] : null} fallback />
+            <DetailRow label="Rok budowy" value={listing.yearBuilt} fallback />
             <DetailRow label="Źródło" value={listing.source} />
           </div>
         </div>

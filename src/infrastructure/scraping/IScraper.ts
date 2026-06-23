@@ -1,6 +1,6 @@
 export interface ScrapedRaw {
   url: string
-  rawJson: { text: string; images: string[] }
+  rawJson: Record<string, unknown>
 }
 
 export interface IScraper {

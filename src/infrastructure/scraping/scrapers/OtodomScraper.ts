@@ -4,31 +4,95 @@ import type { IScraper, ScrapedRaw } from '../IScraper'
 export class OtodomScraper extends BaseScraper implements IScraper {
   source = 'otodom'
 
+  private async scrapeSearchPage(url: string, label: string): Promise<ScrapedRaw[]> {
+    const page = await this.newPage()
+    console.log(`[otodom] loading ${label}...`)
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 })
+    try { await page.click('[id*="onetrust-accept"]') } catch {}
+    await this.delay(1500)
+
+    // Extract listing data directly from __NEXT_DATA__ — avoids per-listing 403s
+    const items = await page.evaluate(`(function() {
+      try {
+        var el = document.getElementById('__NEXT_DATA__')
+        if (!el) return []
+        var data = JSON.parse(el.textContent || '{}')
+        var pp = data.props && data.props.pageProps
+        if (!pp) return []
+        var items = (pp.data && pp.data.searchAds && pp.data.searchAds.items) ||
+                    (pp.adsData && pp.adsData.items) ||
+                    pp.listings || []
+        return items.map(function(item) {
+          var imgs = []
+          if (item.images) {
+            imgs = item.images.map(function(img) {
+              return (typeof img === 'string') ? img : (img.large || img.medium || img.thumbnail || '')
+            }).filter(function(s) { return s && s.startsWith('http') })
+          }
+          var loc = item.location || {}
+          var addr = loc.address || {}
+          return {
+            url: item.slug ? 'https://www.otodom.pl/pl/oferta/' + item.slug : null,
+            title: item.title || item.name || null,
+            price: (item.totalPrice && item.totalPrice.value) || (item.price && item.price.value) || null,
+            currency: (item.totalPrice && item.totalPrice.currency) || 'PLN',
+            area: item.areaInSquareMeters || item.area || null,
+            rooms: item.roomsNumber || item.rooms || null,
+            city: (addr.city && addr.city.name) || null,
+            district: (addr.district && addr.district.name) || null,
+            address: (addr.street && addr.street.name) || null,
+            lat: (loc.coordinates && loc.coordinates.latitude) || null,
+            lng: (loc.coordinates && loc.coordinates.longitude) || null,
+            images: imgs,
+            description: item.shortDescription || item.description || '',
+            floor: item.floor || null,
+            totalFloors: item.totalFloors || null,
+            propertyType: item.estate || 'apartment',
+            marketType: item.market === 'PRIMARY' ? 'primary' : item.market === 'SECONDARY' ? 'secondary' : null,
+            yearBuilt: item.buildYear || null,
+            pricePerSqm: (item.pricePerSquareMeter && item.pricePerSquareMeter.value) || null,
+          }
+        }).filter(function(item) { return item.url && item.title })
+      } catch(e) {
+        return []
+      }
+    })()`) as Record<string, unknown>[]
+
+    await page.close()
+    console.log(`[otodom] extracted ${items.length} items from ${label}`)
+
+    return items.map(item => ({
+      url: item.url as string,
+      rawJson: item,
+    }))
+  }
+
   async scrape(): Promise<ScrapedRaw[]> {
     await this.launch()
     const results: ScrapedRaw[] = []
+    const seen = new Set<string>()
+
     try {
-      const indexPage = await this.newPage()
-      await indexPage.goto('https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/cala-polska?limit=36', { waitUntil: 'networkidle2', timeout: 30000 })
-      try { await indexPage.click('[id*="onetrust-accept"]') } catch {}
-      await indexPage.waitForSelector('article, [data-cy="listing-item"]', { timeout: 10000 }).catch(() => {})
+      const pages = [
+        { url: 'https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/malopolskie/krakow/krakow?limit=72', label: 'Kraków' },
+        { url: 'https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/cala-polska?limit=72', label: 'all Poland p1' },
+        { url: 'https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/cala-polska?limit=72&page=2', label: 'all Poland p2' },
+      ]
 
-      const urls: string[] = await indexPage.evaluate(() => {
-        const links = Array.from(document.querySelectorAll('a[href*="/oferta/"]')) as HTMLAnchorElement[]
-        return [...new Set(links.map(a => a.href))].slice(0, 35)
-      })
-      await indexPage.close()
-
-      for (const url of urls) {
-        try {
-          const page = await this.newPage()
-          await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 })
-          results.push({ url, rawJson: await this.extractPageContent(page) })
-          await page.close()
-          await this.delay(500)
-        } catch (e) { console.warn(`[otodom] skip ${url}`, e) }
+      for (const { url, label } of pages) {
+        const items = await this.scrapeSearchPage(url, label)
+        for (const item of items) {
+          if (!seen.has(item.url)) {
+            seen.add(item.url)
+            results.push(item)
+          }
+        }
+        await this.delay(1000)
       }
-    } finally { await this.close() }
+    } finally {
+      await this.close()
+    }
+
     return results
   }
 }
