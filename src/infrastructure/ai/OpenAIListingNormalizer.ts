@@ -36,6 +36,9 @@ export class OpenAIListingNormalizer implements ListingNormalizer {
   async normalize(raw: RawForNormalization): Promise<NormalizedListing> {
     const rawText = typeof raw.rawJson.text === 'string' ? raw.rawJson.text : JSON.stringify(raw.rawJson)
     const text = rawText.slice(0, 3000)
+    const fullDescription = typeof raw.rawJson.fullDescription === 'string' && raw.rawJson.fullDescription.length > 20
+      ? raw.rawJson.fullDescription
+      : null
     const images = Array.isArray(raw.rawJson.images) ? `\nImages: ${JSON.stringify(raw.rawJson.images)}` : ''
 
     const response = await openai.chat.completions.create({
@@ -49,13 +52,18 @@ export class OpenAIListingNormalizer implements ListingNormalizer {
 
     const content = response.choices[0]?.message?.content ?? '{}'
     const parsed = JSON.parse(content) as NormalizedListing
-    if (typeof parsed.description === 'string') {
+
+    // Use the full scraped description verbatim — never let AI truncate it
+    if (fullDescription) {
+      parsed.description = fullDescription
+    } else if (typeof parsed.description === 'string') {
       parsed.description = parsed.description
         .replace(/<\/p>/gi, '\n\n').replace(/<br\s*\/?>/gi, '\n').replace(/<\/li>/gi, '\n')
         .replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ')
         .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
         .replace(/\n{3,}/g, '\n\n').trim()
     }
+
     return parsed
   }
 }
