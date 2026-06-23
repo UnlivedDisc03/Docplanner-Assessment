@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model RawListing {
+  id        Int      @id @default(autoincrement())
+  source    String
+  url       String   @unique
+  rawHtml   String?  @db.LongText
+  rawJson   Json
+  scrapedAt DateTime @default(now())
+
+  listing   Listing?
+}
+
+model Listing {
+  id          Int        @id @default(autoincrement())
+  rawId       Int        @unique
+  raw         RawListing @relation(fields: [rawId], references: [id])
+  source      String
+  url         String     @unique
+
+  title       String
+  description String     @db.Text
+  price       Int?
+  pricePerSqm Int?
+  currency    String     @default("PLN")
+  area        Float?
+  rooms       Int?
+  floor       Int?
+  totalFloors Int?
+  yearBuilt   Int?
+
+  city        String?
+  district    String?
+  address     String?
+  lat         Float?
+  lng         Float?
+
+  images      String     @db.Text
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([city])
+  @@index([price])
+  @@index([area])
+}
