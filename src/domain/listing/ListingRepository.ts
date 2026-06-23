@@ -43,6 +43,7 @@ export interface ListingInput {
   lat: number | null
   lng: number | null
   images: string[]
+  aiSummary?: string | null
 }
 
 export interface ListingRepository {

@@ -54,6 +54,7 @@ model Listing {
   lng          Float?
 
   images       String     @db.Text
+  aiSummary    String?    @db.Text
 
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt

@@ -29,6 +29,7 @@ export interface Listing {
   lat: number | null
   lng: number | null
   images: string[]
+  aiSummary: string | null
   createdAt: Date
   updatedAt: Date
 }
