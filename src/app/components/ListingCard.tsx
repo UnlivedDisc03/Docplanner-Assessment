@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 import type { Listing } from '@/domain/listing/Listing'
 
@@ -50,7 +53,9 @@ const PhotoIcon = () => (
 )
 
 export function ListingCard({ listing }: { listing: Listing }) {
-  const image = getBestImage(listing.images)
+  const candidates = listing.images.filter(src => !LOGO_PATTERNS.some(p => src.includes(p)))
+  const [imgIndex, setImgIndex] = useState(0)
+  const image = candidates[imgIndex] ?? null
   const location = [listing.district, listing.city].filter(Boolean).join(', ')
 
   const floorLabel = listing.floor == null ? null
@@ -70,7 +75,12 @@ export function ListingCard({ listing }: { listing: Listing }) {
       <div className="relative h-[180px] bg-[#e0e0e0] overflow-hidden">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt={listing.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300" />
+          <img
+            src={image}
+            alt={listing.title}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+            onError={() => setImgIndex(i => i + 1)}
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[#aaa] text-sm">Brak zdjęcia</div>
         )}

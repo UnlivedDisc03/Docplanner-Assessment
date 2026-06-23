@@ -7,6 +7,10 @@ import { OpenAIListingNormalizer } from '@/infrastructure/ai/OpenAIListingNormal
 import { SeedListings } from '@/application/listing/SeedListings'
 
 async function main() {
+  // Wipe normalized listings so all raws get reprocessed with the current normalizer
+  await prisma.listing.deleteMany()
+  console.log('[normalize] Cleared listings table, re-normalizing from existing raw data...')
+
   const repository = new PrismaListingRepository(prisma)
   const normalizer = new OpenAIListingNormalizer()
   const seeder = new SeedListings(repository, normalizer)

@@ -1,125 +1,118 @@
 # Real Estate Portal — Docplanner Assessment
 
-A Polish real estate listings platform. Scrapes ~100 listings from 5 sites, normalises them with OpenAI, and exposes them via a Next.js web app.
+A Polish real estate listings platform built with Next.js, Prisma, and OpenAI. Scrapes ~105 listings from otodom.pl, normalises them with GPT-4o-mini (extracting structured fields + AI summary), and presents them in a filterable browsing UI with detail pages.
+
+---
+
+## Tech Stack
+
+- **Next.js 16** (App Router, server components)
+- **Prisma 7** + **MySQL 8** (via Docker)
+- **OpenAI GPT-4o-mini** — field extraction + Polish AI summary per listing
+- **Puppeteer** — scraping otodom.pl search pages + detail pages via `_next/data` API
+- **Tailwind CSS v4**
 
 ---
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - Docker Desktop (running)
-- An OpenAI API key
+- An OpenAI API key (`sk-proj-...`)
 
 ---
 
 ## Setup
 
-### 1. Environment variables
+### 1. Clone and install
 
-Create `.env.local` in the project root:
+```bash
+git clone <repo-url>
+cd real-estate-portal
+npm install
+```
+
+### 2. Environment variables
+
+Copy the example and fill in your OpenAI key:
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local`:
 
 ```
 DATABASE_URL="mysql://root:root@localhost:3306/realestate"
-OPENAI_API_KEY="sk-..."
+OPENAI_API_KEY="sk-proj-..."
 ```
 
-### 2. Start the database
+### 3. Start the database
 
 ```bash
 docker compose up -d
 ```
 
-MySQL 8 starts on port 3306. Adminer (DB browser) starts on port 8080.
+MySQL 8 starts on port 3306. Adminer (web DB browser) starts on port 8080.
 
-### 3. Install dependencies
-
-```bash
-npm install
-```
-
-### 4. Run DB migrations (first time only)
+### 4. Run migrations
 
 ```bash
-npx prisma migrate dev
+npx prisma migrate deploy
+npx prisma generate
 ```
 
----
+### 5. Scrape and normalise listings
 
-## Database Access
-
-### Via PhpStorm
-
-Go to **View → Tool Windows → Database**, click **+**, choose **Data Source → MySQL**, and enter:
-
-| Field    | Value      |
-|----------|------------|
-| Host     | localhost  |
-| Port     | 3306       |
-| User     | root       |
-| Password | root       |
-| Database | realestate |
-
-Click **Test Connection** — if it fails, make sure Docker is running (`docker compose up -d`).
-
-### Via Adminer (web UI)
-
-Open http://localhost:8080 in your browser and log in:
-
-| Field    | Value      |
-|----------|------------|
-| System   | MySQL      |
-| Server   | mysql      |
-| Username | root       |
-| Password | root       |
-| Database | realestate |
-
-### Via CLI
+This does everything in one command — clears the DB, scrapes ~105 listings from otodom.pl (including full descriptions and structured fields via otodom's internal API), then normalises each one with OpenAI:
 
 ```bash
-docker exec -it real-estate-portal-mysql-1 mysql -u root -proot realestate
+npm run rescrape
 ```
 
----
+Takes ~10–15 minutes (Puppeteer scrape + 105 OpenAI calls). You will see progress logged to the terminal.
 
-## Scraping & Seeding
-
-The scraper runs in two phases. **You need your OpenAI API key in `.env.local` before Phase 2.**
-
-### Phase 1 — Scrape raw listings (no API key needed)
-
-```bash
-npm run scrape
-```
-
-Visits 5 Polish real estate sites with Puppeteer and saves raw text to the `RawListing` table. Takes ~5-15 minutes. Safe to re-run (duplicate URLs are skipped).
-
-**Current status:** Phase 1 complete — 60 raw listings in DB.
-
-### ⚠️ PAUSE — Schema analysis required before Phase 2
-
-Before running normalization, browse the `RawListing` table in Adminer and inspect the `rawJson` column. Decide what extra fields to add to the `Listing` table, update `prisma/schema.prisma`, then run:
-
-```bash
-npx prisma migrate dev --name <your-migration-name>
-```
-
-### Phase 2 — Normalize with OpenAI (API key required)
-
-Once the schema is finalised, run:
-
-```bash
-npm run normalize
-```
-
----
-
-## Development
+### 6. Start the dev server
 
 ```bash
 npm run dev
 ```
 
-App runs at http://localhost:3000.
+App runs at http://localhost:3000 (or 3001 if 3000 is in use).
+
+---
+
+## Available Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start Next.js dev server |
+| `npm run build` | Production build |
+| `npm run rescrape` | Clear DB → scrape otodom → normalise all with OpenAI |
+| `npm run normalize` | Re-normalise existing raw listings (no scrape) |
+| `npm test` | Run Jest unit tests |
+
+---
+
+## Database Access
+
+### Adminer (web UI)
+
+Open http://localhost:8080 and log in:
+
+| Field | Value |
+|---|---|
+| System | MySQL |
+| Server | mysql |
+| Username | root |
+| Password | root |
+| Database | realestate |
+
+### CLI
+
+```bash
+docker exec -it real-estate-portal-mysql-1 mysql -u root -proot realestate
+```
 
 ---
 
@@ -128,43 +121,39 @@ App runs at http://localhost:3000.
 ```
 src/
 ├── domain/listing/          # Entities and interfaces (no framework deps)
-├── application/listing/     # Use cases (GetListings, GetListingById, SeedListings)
+│   ├── Listing.ts
+│   ├── ListingRepository.ts
+│   └── ListingNormalizer.ts
+├── application/listing/     # Use cases
+│   ├── GetListings.ts
+│   ├── GetListingById.ts
+│   └── SeedListings.ts
 ├── infrastructure/
-│   ├── ai/                  # OpenAIListingNormalizer
+│   ├── ai/                  # OpenAIListingNormalizer (extract + summarise)
 │   ├── persistence/         # PrismaListingRepository
-│   └── scraping/            # Puppeteer scrapers (5 sites)
-├── app/                     # Next.js pages and API routes
-└── lib/                     # Prisma + OpenAI singletons
+│   └── scraping/            # Puppeteer scrapers
+│       ├── BaseScraper.ts
+│       └── scrapers/OtodomScraper.ts
+├── app/                     # Next.js App Router pages + components
+│   ├── page.tsx             # Browse / filter listings
+│   ├── listing/[id]/        # Listing detail page
+│   └── components/          # FilterBar, ListingCard, ListingGallery, etc.
+└── lib/                     # Prisma + OpenAI client singletons
 scripts/
-└── scrape.ts                # Phase 1 scrape script
+├── rescrape.ts              # Full pipeline: scrape + normalise
+└── normalize.ts             # Re-normalise only (keeps existing raw data)
+prisma/
+├── schema.prisma
+└── migrations/
 ```
 
 ---
 
-## Scraping Status
+## Features
 
-| Site             | Status            | Listings |
-|------------------|-------------------|----------|
-| otodom.pl        | ✅ Success        | 20       |
-| tabelaofert.pl   | ✅ Success        | 20       |
-| okolica.pl       | ❌ 0 found        | 0        |
-| properstar.co.uk | ❌ Nav error      | 0        |
-| realting.com     | ✅ Success        | 20       |
-| **Total**        |                   | **60**   |
-
-Okolica and Properstar scrapers may need selector fixes — see `src/infrastructure/scraping/scrapers/`.
-
----
-
-## TODO
-
-- [ ] Add OpenAI API key to `.env.local`
-- [ ] Analyze `RawListing.rawJson` in Adminer to decide final `Listing` schema fields
-- [ ] Update `prisma/schema.prisma` with any new fields and run migration
-- [ ] Run Phase 2 normalization (`npm run normalize`)
-- [ ] Fix OkolicaScraper (0 listings — likely wrong index page selectors)
-- [ ] Fix PropertystarScraper (Puppeteer navigation race condition)
-- [ ] Implement API routes (`/api/listings`, `/api/listings/[id]`)
-- [ ] Build listings page with filter bar and lazy loading
-- [ ] Build offer detail page
-- [ ] (Optional) AI chat search
+- **Browse & filter** — city, price range, rooms, market type, property type, condition, amenities (balcony, parking, garden, elevator)
+- **Full descriptions** — fetched from each listing's detail page via otodom's `_next/data` API
+- **Structured fields** — floor, heating type, condition, monthly fee, year built, market type extracted from otodom's internal `target` data
+- **AI summary** — 2–3 sentence Polish summary generated once at scrape time, stored in DB
+- **Image gallery** — 3-up grid with fullscreen lightbox, broken images skipped automatically
+- **Listing detail page** — stats bar, AI summary, full description, amenities, details grid, sticky price card

@@ -31,7 +31,8 @@ export class SeedListings {
         await this.repository.saveListing(raw.id, { source: raw.source, url: raw.url, ...normalized, pricePerSqm })
         console.log(`[seed] ✓ ${normalized.title || raw.url}`)
       } catch (err) {
-        console.error(`[seed] ✗ ${raw.url}:`, (err as Error).message?.split('\n')[0])
+        const msg = err instanceof Error ? err.message : String(err)
+        console.error(`[seed] ✗ ${raw.url}:`, msg.slice(0, 200))
       }
     }
 

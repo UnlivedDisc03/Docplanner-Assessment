@@ -92,14 +92,14 @@ export abstract class BaseScraper {
       var ogDesc = getMeta('og:description') || getMeta('description');
       var ogPrice = getMeta('product:price:amount') || getMeta('og:price:amount');
       var ogCurrency = getMeta('product:price:currency') || getMeta('og:price:currency');
-      var bodyText = (document.body.innerText || '').slice(0, 3000);
+      var bodyText = (document.body.innerText || '').slice(0, 4000);
 
       var parts = [];
-      if (jsonLdCompact) parts.push(jsonLdCompact);
       if (ogTitle) parts.push('Title: ' + ogTitle);
       if (ogDesc) parts.push('Description: ' + ogDesc);
       if (ogPrice) parts.push('Price: ' + ogPrice + ' ' + ogCurrency);
-      if (!jsonLdCompact) parts.push(bodyText);
+      parts.push(bodyText);
+      if (jsonLdCompact) parts.push(jsonLdCompact);
       var text = parts.join('\\n').slice(0, 6000);
 
       var agentPattern = /agent|agency|avatar|profile|biuro|deweloper|developer|contact|broker|realtor|company|logo|icon|brand/i;

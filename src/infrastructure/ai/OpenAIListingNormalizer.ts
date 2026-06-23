@@ -29,17 +29,25 @@ const SYSTEM_PROMPT = `You are a real estate data extractor. Given raw text from
   "lng": number | null,
   "images": string[] (full image URLs found in the data, empty array if none)
 }
-Polish hints: cena=price, powierzchnia/pow.=area, pokoje/pok.=rooms, piętro=floor, parter=ground floor, rok budowy=year built, dzielnica=district, czynsz=monthlyFee, balkon=balcony, winda=elevator, garaż/parking=hasParking, ogród=garden, pierwotny=primary market, wtórny=secondary market, do zamieszkania=move_in_ready, do remontu=needs_renovation, ogrzewanie miejskie=district heating.
+Map any language or encoding to the schema fields. Examples: area_m2/powierzchnia/m²→area, rent_pln/czynsz→monthlyFee, floor_1/piętro 1→floor:1, floor_0/parter→floor:0, total_floors/building_floors_num→totalFloors, build_year/rok budowy→yearBuilt, ready_to_use/do zamieszkania→condition:move_in_ready, to_renovation/do remontu→needs_renovation, developer_state→developer_state, high_standard→high_standard, urban/miejskie/district heating→heatingType:district, gas/gazowe→gas, electric→electric, primary/pierwotny→marketType:primary, secondary/wtórny→secondary. For extras: include basement, separate_kitchen, equipment_types, security_types etc. as key:true pairs. lift/winda yes→hasElevator:true.
 Return ONLY the JSON object. No markdown, no explanation.`
 
 export class OpenAIListingNormalizer implements ListingNormalizer {
   async normalize(raw: RawForNormalization): Promise<NormalizedListing> {
-    const rawText = typeof raw.rawJson.text === 'string' ? raw.rawJson.text : JSON.stringify(raw.rawJson)
-    const text = rawText.slice(0, 3000)
-    const fullDescription = typeof raw.rawJson.fullDescription === 'string' && raw.rawJson.fullDescription.length > 20
-      ? raw.rawJson.fullDescription
-      : null
-    const images = Array.isArray(raw.rawJson.images) ? `\nImages: ${JSON.stringify(raw.rawJson.images)}` : ''
+    const r = raw.rawJson as Record<string, unknown>
+
+    // Build focused input: structured fields first so they're never truncated
+    const parts: string[] = []
+    if (typeof r.title === 'string') parts.push(`Title: ${r.title}`)
+    if (typeof r.characteristics === 'string' && r.characteristics) parts.push(r.characteristics)
+    // Short description for context only — fullDescription is used verbatim separately
+    const shortDesc = typeof r.description === 'string' ? r.description.slice(0, 800) : ''
+    if (shortDesc) parts.push(`Description excerpt: ${shortDesc}`)
+    const text = parts.join('\n').slice(0, 4000)
+
+    const fullDescription = typeof r.fullDescription === 'string' && r.fullDescription.length > 20
+      ? r.fullDescription : null
+    const images = Array.isArray(r.images) ? `\nImages: ${JSON.stringify(r.images)}` : ''
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -52,6 +60,8 @@ export class OpenAIListingNormalizer implements ListingNormalizer {
 
     const content = response.choices[0]?.message?.content ?? '{}'
     const parsed = JSON.parse(content) as NormalizedListing
+
+    parsed.images = Array.isArray(parsed.images) ? parsed.images : []
 
     // Use the full scraped description verbatim — never let AI truncate it
     if (fullDescription) {

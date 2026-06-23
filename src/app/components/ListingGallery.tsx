@@ -10,8 +10,11 @@ interface Props {
 
 export function ListingGallery({ images, title }: Props) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [failed, setFailed] = useState<Set<string>>(new Set())
+  const onError = (src: string) => setFailed(prev => new Set(prev).add(src))
+  const validImages = images.filter(src => !failed.has(src))
 
-  if (images.length === 0) return (
+  if (validImages.length === 0) return (
     <div className="rounded-xl bg-[#f0f0f0] h-[200px] flex flex-col items-center justify-center gap-2 mb-6 text-[#bbb]">
       <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
         <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -30,41 +33,44 @@ export function ListingGallery({ images, title }: Props) {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={images[0]}
+            src={validImages[0]}
             alt={title}
             className="absolute inset-0 w-full h-full object-contain hover:scale-[1.02] transition-transform duration-300"
+            onError={() => onError(validImages[0])}
           />
         </div>
 
         {/* Right column thumbnails */}
         <div className="grid grid-rows-2 gap-1">
-          {images[1] && (
+          {validImages[1] && (
             <div
               className="relative bg-black cursor-zoom-in overflow-hidden"
               onClick={() => setLightboxIndex(1)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={images[1]}
+                src={validImages[1]}
                 alt=""
                 className="absolute inset-0 w-full h-full object-contain hover:scale-[1.02] transition-transform duration-300"
+                onError={() => onError(validImages[1])}
               />
             </div>
           )}
-          {images[2] && (
+          {validImages[2] && (
             <div
               className="relative bg-black cursor-zoom-in overflow-hidden"
               onClick={() => setLightboxIndex(2)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={images[2]}
+                src={validImages[2]}
                 alt=""
                 className="absolute inset-0 w-full h-full object-contain hover:scale-[1.02] transition-transform duration-300"
+                onError={() => onError(validImages[2])}
               />
-              {images.length > 3 && (
+              {validImages.length > 3 && (
                 <div className="absolute inset-0 bg-black/45 flex items-center justify-center text-white font-semibold text-base pointer-events-none">
-                  +{images.length - 3} zdjęć
+                  +{validImages.length - 3} zdjęć
                 </div>
               )}
             </div>
@@ -74,7 +80,7 @@ export function ListingGallery({ images, title }: Props) {
 
       {lightboxIndex !== null && (
         <ImageLightbox
-          images={images}
+          images={validImages}
           initialIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
         />

@@ -63,10 +63,12 @@ export function ImageLightbox({ images, initialIndex, onClose }: Props) {
       <div className="max-w-[90vw] max-h-[88vh] flex items-center justify-center" onClick={e => e.stopPropagation()}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          key={images[index]}
           src={images[index]}
           alt=""
           className="max-w-full max-h-[88vh] object-contain rounded-lg select-none"
           draggable={false}
+          onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
         />
       </div>
 

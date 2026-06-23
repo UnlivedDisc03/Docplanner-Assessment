@@ -57,7 +57,7 @@ export class PrismaListingRepository implements ListingRepository {
       ...data,
       title: data.title ?? 'Bez tytułu',
       description: data.description ?? '',
-      images: JSON.stringify(data.images),
+      images: JSON.stringify(Array.isArray(data.images) ? data.images : []),
       extras: data.extras != null ? (data.extras as Prisma.InputJsonValue) : Prisma.DbNull,
     }
     await this.prisma.listing.upsert({
