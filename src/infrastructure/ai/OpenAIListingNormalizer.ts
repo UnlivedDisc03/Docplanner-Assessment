@@ -64,6 +64,48 @@ export class OpenAIListingNormalizer implements ListingNormalizer {
         .replace(/\n{3,}/g, '\n\n').trim()
     }
 
+    // Generate AI summary from the full description + key fields
+    parsed.aiSummary = await this.generateSummary(parsed)
+
     return parsed
+  }
+
+  async generateSummary(data: {
+    title?: string; city?: string | null; district?: string | null
+    price?: number | null; currency?: string; area?: number | null; rooms?: number | null
+    floor?: number | null; totalFloors?: number | null; condition?: string | null
+    hasBalcony?: boolean | null; hasParking?: boolean | null
+    hasGarden?: boolean | null; hasElevator?: boolean | null
+    description?: string
+  }): Promise<string> {
+    const lines = [
+      data.title ? `Tytuł: ${data.title}` : null,
+      [data.district, data.city].filter(Boolean).length ? `Lokalizacja: ${[data.district, data.city].filter(Boolean).join(', ')}` : null,
+      data.price ? `Cena: ${data.price.toLocaleString('pl-PL')} ${data.currency ?? 'PLN'}` : null,
+      data.area ? `Powierzchnia: ${data.area} m²` : null,
+      data.rooms ? `Pokoje: ${data.rooms}` : null,
+      data.floor != null ? `Piętro: ${data.floor === 0 ? 'parter' : `${data.floor}/${data.totalFloors ?? '?'}`}` : null,
+      data.condition ? `Stan: ${data.condition}` : null,
+      [data.hasBalcony && 'balkon', data.hasParking && 'parking', data.hasGarden && 'ogród', data.hasElevator && 'winda'].filter(Boolean).join(', ') || null,
+      data.description ? `Opis: ${data.description.slice(0, 800)}` : null,
+    ].filter(Boolean).join('\n')
+
+    try {
+      const res = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'Jesteś asystentem nieruchomości. Na podstawie danych ogłoszenia napisz zwięzłe podsumowanie po polsku (2–3 zdania), podkreślając najważniejsze zalety tej nieruchomości. Bądź konkretny i pomocny. Bez punktów, bez markdown.',
+          },
+          { role: 'user', content: lines },
+        ],
+        temperature: 0.4,
+        max_tokens: 160,
+      })
+      return res.choices[0]?.message?.content?.trim() ?? ''
+    } catch {
+      return ''
+    }
   }
 }

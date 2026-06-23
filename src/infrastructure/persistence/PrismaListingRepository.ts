@@ -14,7 +14,7 @@ type ListingRow = {
   extras: unknown;
   city: string | null; district: string | null; address: string | null;
   lat: number | null; lng: number | null;
-  images: string; createdAt: Date; updatedAt: Date;
+  images: string; aiSummary: string | null; createdAt: Date; updatedAt: Date;
 }
 
 export class PrismaListingRepository implements ListingRepository {

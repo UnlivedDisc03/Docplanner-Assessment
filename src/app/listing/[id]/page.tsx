@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import { Suspense } from 'react'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { PrismaListingRepository } from '@/infrastructure/persistence/PrismaListingRepository'
@@ -124,17 +123,7 @@ export default async function ListingPage(props: PageProps<'/listing/[id]'>) {
           </div>
 
           {/* AI Summary */}
-          <Suspense fallback={
-            <div className="bg-[#f0fdf8] border border-[#00C97A]/20 rounded-xl p-4 mb-5 animate-pulse">
-              <div className="h-3 w-28 bg-[#00C97A]/20 rounded mb-3" />
-              <div className="space-y-2">
-                <div className="h-3 bg-[#e0e0e0] rounded w-full" />
-                <div className="h-3 bg-[#e0e0e0] rounded w-5/6" />
-              </div>
-            </div>
-          }>
-            <AISummary listing={listing} description={listing.description ? stripHtml(listing.description) : ''} />
-          </Suspense>
+          <AISummary listing={listing} />
 
           {/* Description */}
           <h2 className="text-base font-bold text-[#1a1a1a] mb-3">Opis</h2>

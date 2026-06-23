@@ -24,6 +24,7 @@ export interface NormalizedListing {
   lat: number | null
   lng: number | null
   images: string[]
+  aiSummary?: string | null
 }
 
 export interface RawForNormalization {

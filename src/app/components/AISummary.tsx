@@ -1,55 +1,7 @@
-import { unstable_cache } from 'next/cache'
-import { openai } from '@/lib/openai'
 import type { Listing } from '@/domain/listing/Listing'
 
-function buildPrompt(listing: Listing, description: string): string {
-  return [
-    `Tytuł: ${listing.title}`,
-    [listing.district, listing.city].filter(Boolean).length
-      ? `Lokalizacja: ${[listing.district, listing.city].filter(Boolean).join(', ')}`
-      : null,
-    listing.price ? `Cena: ${listing.price.toLocaleString('pl-PL')} ${listing.currency}` : null,
-    listing.area ? `Powierzchnia: ${listing.area} m²` : null,
-    listing.rooms ? `Pokoje: ${listing.rooms}` : null,
-    listing.floor != null
-      ? `Piętro: ${listing.floor === 0 ? 'parter' : `${listing.floor}/${listing.totalFloors ?? '?'}`}`
-      : null,
-    listing.condition ? `Stan: ${listing.condition}` : null,
-    [listing.hasBalcony && 'balkon', listing.hasParking && 'parking', listing.hasGarden && 'ogród', listing.hasElevator && 'winda']
-      .filter(Boolean).join(', ') || null,
-    description ? `Opis: ${description.slice(0, 600)}` : null,
-  ].filter(Boolean).join('\n')
-}
-
-const fetchSummary = unstable_cache(
-  async (listingId: number, prompt: string): Promise<string> => {
-    const res = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content:
-            'Jesteś asystentem nieruchomości. Na podstawie danych ogłoszenia napisz zwięzłe podsumowanie po polsku (2–3 zdania), podkreślając najważniejsze zalety tej nieruchomości. Bądź konkretny i pomocny. Bez punktów, bez markdown.',
-        },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.4,
-      max_tokens: 160,
-    })
-    return res.choices[0]?.message?.content?.trim() ?? ''
-  },
-  ['listing-ai-summary'],
-  { revalidate: 60 * 60 * 24 }
-)
-
-export async function AISummary({ listing, description }: { listing: Listing; description: string }) {
-  let summary = ''
-  try {
-    summary = await fetchSummary(listing.id, buildPrompt(listing, description))
-  } catch {
-    return null
-  }
-  if (!summary) return null
+export function AISummary({ listing }: { listing: Listing }) {
+  if (!listing.aiSummary) return null
 
   return (
     <div className="bg-gradient-to-br from-[#f0fdf8] to-[#f5fffc] border border-[#00C97A]/30 rounded-xl p-4 mb-5">
@@ -60,7 +12,7 @@ export async function AISummary({ listing, description }: { listing: Listing; de
         </svg>
         <span className="text-[11px] font-bold text-[#00C97A] uppercase tracking-wider">Podsumowanie AI</span>
       </div>
-      <p className="text-sm text-[#444] leading-relaxed">{summary}</p>
+      <p className="text-sm text-[#444] leading-relaxed">{listing.aiSummary}</p>
     </div>
   )
 }
