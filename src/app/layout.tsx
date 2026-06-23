@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import { Suspense } from 'react'
 import { HeaderSearch } from './components/HeaderSearch'
+import { ChatWidget } from './components/ChatWidget'
 import './globals.css'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </header>
         <main className="flex-1">{children}</main>
+        <ChatWidget />
       </body>
     </html>
   )
