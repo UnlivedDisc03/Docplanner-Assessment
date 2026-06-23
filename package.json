@@ -9,7 +9,8 @@
     "test": "jest",
     "scrape": "tsx scripts/scrape.ts",
     "scrape:krakow": "tsx scripts/scrape-krakow.ts",
-    "normalize": "tsx scripts/normalize.ts"
+    "normalize": "tsx scripts/normalize.ts",
+    "rescrape": "tsx scripts/rescrape.ts"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.8.0",

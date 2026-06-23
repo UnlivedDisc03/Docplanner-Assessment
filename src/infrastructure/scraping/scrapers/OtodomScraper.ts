@@ -7,11 +7,15 @@ export class OtodomScraper extends BaseScraper implements IScraper {
   private async scrapeSearchPage(url: string, label: string): Promise<ScrapedRaw[]> {
     const page = await this.newPage()
     console.log(`[otodom] loading ${label}...`)
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 })
+    try {
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 })
+    } catch {
+      await page.close()
+      return []
+    }
     try { await page.click('[id*="onetrust-accept"]') } catch {}
     await this.delay(1500)
 
-    // Extract listing data directly from __NEXT_DATA__ — avoids per-listing 403s
     const items = await page.evaluate(`(function() {
       try {
         var el = document.getElementById('__NEXT_DATA__')
@@ -53,46 +57,53 @@ export class OtodomScraper extends BaseScraper implements IScraper {
             pricePerSqm: (item.pricePerSquareMeter && item.pricePerSquareMeter.value) || null,
           }
         }).filter(function(item) { return item.url && item.title })
-      } catch(e) {
-        return []
-      }
+      } catch(e) { return [] }
     })()`) as Record<string, unknown>[]
 
     await page.close()
-    console.log(`[otodom] extracted ${items.length} items from ${label}`)
-
-    return items.map(item => ({
-      url: item.url as string,
-      rawJson: item,
-    }))
+    console.log(`[otodom] ${items.length} items from ${label}`)
+    return items.map(item => ({ url: item.url as string, rawJson: item }))
   }
 
-  async scrape(): Promise<ScrapedRaw[]> {
+  async scrape(maxGeneral = 100, krakowExtra = 5): Promise<ScrapedRaw[]> {
     await this.launch()
-    const results: ScrapedRaw[] = []
+    const general: ScrapedRaw[] = []
+    const krakow: ScrapedRaw[] = []
     const seen = new Set<string>()
 
-    try {
-      const pages = [
-        { url: 'https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/malopolskie/krakow/krakow?limit=72', label: 'Kraków' },
-        { url: 'https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/cala-polska?limit=72', label: 'all Poland p1' },
-        { url: 'https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/cala-polska?limit=72&page=2', label: 'all Poland p2' },
-      ]
+    const generalPages = [
+      { url: 'https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/cala-polska?limit=72', label: 'Polska p1' },
+      { url: 'https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/cala-polska?limit=72&page=2', label: 'Polska p2' },
+      { url: 'https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/cala-polska?limit=72&page=3', label: 'Polska p3' },
+    ]
 
-      for (const { url, label } of pages) {
+    try {
+      // General listings
+      for (const { url, label } of generalPages) {
+        if (general.length >= maxGeneral) break
         const items = await this.scrapeSearchPage(url, label)
         for (const item of items) {
-          if (!seen.has(item.url)) {
-            seen.add(item.url)
-            results.push(item)
-          }
+          if (general.length >= maxGeneral) break
+          if (!seen.has(item.url)) { seen.add(item.url); general.push(item) }
         }
-        await this.delay(1000)
+        await this.delay(1200)
+      }
+
+      // Kraków-specific (additional guaranteed listings)
+      const krakowItems = await this.scrapeSearchPage(
+        'https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/malopolskie/krakow/krakow?limit=36',
+        'Kraków'
+      )
+      for (const item of krakowItems) {
+        if (krakow.length >= krakowExtra) break
+        if (!seen.has(item.url)) { seen.add(item.url); krakow.push(item) }
       }
     } finally {
       await this.close()
     }
 
-    return results
+    const total = [...general, ...krakow]
+    console.log(`[otodom] total: ${total.length} (${general.length} general + ${krakow.length} Kraków)`)
+    return total
   }
 }
