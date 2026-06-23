@@ -44,6 +44,7 @@ export function FiltersDropdown() {
 
   const push = useCallback((params: URLSearchParams) => {
     params.delete('page')
+    params.delete('_ai')
     router.push(`/?${params.toString()}`)
   }, [router])
 
