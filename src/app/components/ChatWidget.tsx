@@ -56,7 +56,7 @@ function ListingChip({ listing }: { listing: Listing }) {
 
 const WELCOME: Message = {
   role: 'assistant',
-  content: 'Cześć! 👋 Powiedz mi czego szukasz, a znajdę dla Ciebie pasujące oferty. Np. „Mieszkanie w Krakowie, 2 pokoje, do 500 000 zł".',
+  content: 'Cześć! 👋 Powiedz mi czego szukasz, a znajdę dla Ciebie pasujące oferty.',
 }
 
 export function ChatWidget() {
