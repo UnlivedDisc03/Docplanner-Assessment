@@ -34,7 +34,8 @@ Return ONLY the JSON object. No markdown, no explanation.`
 
 export class OpenAIListingNormalizer implements ListingNormalizer {
   async normalize(raw: RawForNormalization): Promise<NormalizedListing> {
-    const text = typeof raw.rawJson.text === 'string' ? raw.rawJson.text : JSON.stringify(raw.rawJson)
+    const rawText = typeof raw.rawJson.text === 'string' ? raw.rawJson.text : JSON.stringify(raw.rawJson)
+    const text = rawText.slice(0, 3000)
     const images = Array.isArray(raw.rawJson.images) ? `\nImages: ${JSON.stringify(raw.rawJson.images)}` : ''
 
     const response = await openai.chat.completions.create({

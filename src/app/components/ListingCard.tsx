@@ -7,7 +7,7 @@ function formatPrice(price: number | null, currency: string) {
 }
 
 export function ListingCard({ listing }: { listing: Listing }) {
-  const image = listing.images[0]
+  const image = listing.images.find(src => !src.includes('s=314x236') && !src.includes('thumbnail')) ?? listing.images[0]
   const location = [listing.district, listing.city].filter(Boolean).join(', ')
 
   return (

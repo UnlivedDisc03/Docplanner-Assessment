@@ -14,11 +14,11 @@ export class SeedListings {
     console.log(`[seed] Saved ${listings.length} raw listings`)
   }
 
-  async normalizeAll(): Promise<void> {
+  async normalizeAll(concurrency = 10): Promise<void> {
     const unprocessed = await this.repository.findUnprocessedRaw()
-    console.log(`[seed] Normalizing ${unprocessed.length} listings...`)
+    console.log(`[seed] Normalizing ${unprocessed.length} listings (concurrency: ${concurrency})...`)
 
-    for (const raw of unprocessed) {
+    const processOne = async (raw: typeof unprocessed[0]) => {
       try {
         const normalized = await this.normalizer.normalize({
           source: raw.source,
@@ -28,12 +28,15 @@ export class SeedListings {
         const pricePerSqm = normalized.price && normalized.area
           ? Math.round(normalized.price / normalized.area)
           : null
-
         await this.repository.saveListing(raw.id, { source: raw.source, url: raw.url, ...normalized, pricePerSqm })
         console.log(`[seed] ✓ ${normalized.title || raw.url}`)
       } catch (err) {
-        console.error(`[seed] ✗ ${raw.url}:`, err)
+        console.error(`[seed] ✗ ${raw.url}:`, (err as Error).message?.split('\n')[0])
       }
+    }
+
+    for (let i = 0; i < unprocessed.length; i += concurrency) {
+      await Promise.all(unprocessed.slice(i, i + concurrency).map(processOne))
     }
   }
 }

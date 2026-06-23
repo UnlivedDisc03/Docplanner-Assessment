@@ -42,7 +42,7 @@ export default async function ListingPage(props: PageProps<'/listing/[id]'>) {
 
       {listing.images.length > 0 && (
         <div className="grid grid-cols-2 gap-2 mb-6 rounded-xl overflow-hidden">
-          {listing.images.slice(0, 4).map((src, i) => (
+          {listing.images.filter(src => !src.includes('s=314x236') && !src.includes('thumbnail')).slice(0, 4).map((src, i) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img key={i} src={src} alt={listing.title} className={`w-full object-cover ${i === 0 ? 'col-span-2 h-72' : 'h-40'}`} />
           ))}
