@@ -25,6 +25,7 @@ export function HeaderSearch() {
       })
       const { params } = await res.json() as { params: Record<string, string> }
       const urlParams = new URLSearchParams(params)
+      urlParams.set('_ai', '1')
       router.push(`/?${urlParams.toString()}`)
     } catch {
       // fallback to plain text search

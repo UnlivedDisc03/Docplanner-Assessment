@@ -62,15 +62,23 @@ npx prisma migrate deploy
 npx prisma generate
 ```
 
-### 5. Scrape and normalise listings
+### 5. Seed the database (fast) **or** scrape live
 
-This does everything in one command — clears the DB, scrapes ~105 listings from otodom.pl (including full descriptions and structured fields via otodom's internal API), then normalises each one with OpenAI:
+**Fast path — restore the committed snapshot (~5 s, no OpenAI calls):**
+
+```bash
+npm run seed
+```
+
+Pipes `prisma/seed.sql` into the running MySQL container (102 listings + 105 raw rows). Idempotent — runs `TRUNCATE` first, so it's safe to re-run. Override the container name with `MYSQL_CONTAINER=<name>` if it differs.
+
+**Or scrape fresh (~10–15 min, needs `OPENAI_API_KEY`):**
 
 ```bash
 npm run rescrape
 ```
 
-Takes ~10–15 minutes (Puppeteer scrape + 105 OpenAI calls). You will see progress logged to the terminal.
+Clears the DB, scrapes ~105 listings from otodom.pl, normalises each with OpenAI. Use this only when you want fresh data.
 
 ### 6. Start the dev server
 
@@ -88,9 +96,11 @@ App runs at http://localhost:3000 (or 3001 if 3000 is in use).
 |---|---|
 | `npm run dev` | Start Next.js dev server |
 | `npm run build` | Production build |
+| `npm run seed` | Restore `prisma/seed.sql` snapshot into the MySQL container (fast, no OpenAI) |
 | `npm run rescrape` | Clear DB → scrape otodom → normalise all with OpenAI |
 | `npm run normalize` | Re-normalise existing raw listings (no scrape) |
 | `npm test` | Run Jest unit tests |
+| `npx playwright test` | Run the Playwright E2E suite (see `E2E-Test.md`) |
 
 ---
 

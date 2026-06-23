@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UI Mockup — NieruchomościPL</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; }
+
+  /* ── HEADER ── */
+  .header {
+    background: #1C1C21;
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: -0.5px; white-space: nowrap; }
+  .logo span { color: #00C97A; }
+  .search-bar {
+    flex: 1;
+    max-width: 500px;
+    display: flex;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 38px;
+  }
+  .search-bar input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 0 14px;
+    font-size: 14px;
+    color: #1a1a1a;
+  }
+  .search-bar button {
+    background: #00C97A;
+    border: none;
+    padding: 0 16px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .header-links { display: flex; gap: 20px; margin-left: auto; }
+  .header-links a { color: #ccc; font-size: 13px; text-decoration: none; }
+  .header-links a:hover { color: #fff; }
+
+  /* ── FILTER BAR ── */
+  .filter-section {
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 60px;
+    z-index: 99;
+  }
+  .filter-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1.5px solid #ddd;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    background: #fff;
+    color: #333;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .filter-pill:hover { border-color: #00C97A; color: #00C97A; }
+  .filter-pill.active { background: #00C97A; border-color: #00C97A; color: #fff; }
+  .filter-pill svg { width: 12px; height: 12px; }
+  .results-meta {
+    margin-left: auto;
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+  }
+  .sort-select {
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: #333;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main { max-width: 1280px; margin: 0 auto; padding: 20px 24px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 1024px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+  /* ── LISTING CARD ── */
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e8e8e8;
+    transition: box-shadow 0.2s, transform 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.12); transform: translateY(-2px); }
+
+  .card-image {
+    position: relative;
+    aspect-ratio: 16/10;
+    background: #e0e0e0;
+    overflow: hidden;
+  }
+  .card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+  .card:hover .card-image img { transform: scale(1.04); }
+
+  .card-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 6px;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .badge-new { background: #00C97A; color: #fff; }
+  .badge-primary { background: #1C1C21; color: #fff; }
+  .badge-secondary { background: #fff; color: #555; border: 1px solid #ddd; }
+  .badge-reduced { background: #e63946; color: #fff; }
+
+  .card-save {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .card-save:hover { background: #fff; }
+
+  .card-photo-count {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .card-body { padding: 14px 16px 16px; }
+
+  .card-price { font-size: 20px; font-weight: 700; color: #1a1a1a; }
+  .card-ppsqm { font-size: 12px; color: #888; margin-top: 1px; }
+
+  .card-title {
+    font-size: 13.5px;
+    color: #333;
+    margin-top: 8px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-stats {
+    display: flex;
+    gap: 14px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+    flex-wrap: wrap;
+  }
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: #444;
+    font-weight: 500;
+  }
+  .stat svg { color: #888; flex-shrink: 0; }
+
+  .card-location {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #888;
+  }
+  .card-location svg { flex-shrink: 0; }
+
+  .card-source {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 11px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── DETAIL PAGE MOCKUP ── */
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 40px 0 16px;
+    color: #1a1a1a;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #00C97A;
+    display: inline-block;
+  }
+
+  .detail-hero {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 4px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .detail-hero-main { aspect-ratio: 4/3; background: #ccc; overflow: hidden; }
+  .detail-hero-main img { width: 100%; height: 100%; object-fit: cover; }
+  .detail-hero-side { display: grid; grid-template-rows: 1fr 1fr; gap: 4px; }
+  .detail-hero-thumb { background: #bbb; overflow: hidden; position: relative; }
+  .detail-hero-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .detail-hero-thumb.more::after {
+    content: '+8 zdjęć';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .detail-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+
+  .detail-price-card {
+    background: #fff;
+    border: 1.5px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 24px;
+    position: sticky;
+    top: 120px;
+  }
+  .detail-price { font-size: 28px; font-weight: 800; color: #1a1a1a; }
+  .detail-ppsqm { font-size: 13px; color: #888; margin-top: 4px; }
+  .detail-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin: 16px 0;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .detail-stat {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    border-right: 1px solid #f0f0f0;
+  }
+  .detail-stat:nth-child(even) { border-right: none; }
+  .detail-stat:nth-last-child(-n+2) { border-bottom: none; }
+  .detail-stat-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.4px; }
+  .detail-stat-value { font-size: 15px; font-weight: 600; color: #1a1a1a; margin-top: 3px; }
+
+  .btn-primary {
+    width: 100%;
+    background: #00C97A;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: #00b36b; }
+  .btn-outline {
+    width: 100%;
+    background: #fff;
+    color: #1a1a1a;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: border-color 0.2s;
+  }
+  .btn-outline:hover { border-color: #999; }
+
+  .amenity-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .amenity {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #333;
+  }
+
+  .divider { margin: 24px 0; border: none; border-top: 1px solid #ececec; }
+  hr { border: none; border-top: 1px solid #ececec; margin: 24px 0; }
+
+  .page-label {
+    display: inline-block;
+    background: #1C1C21;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .no-photo { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #ddd; color: #999; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════ -->
+<!-- MOCKUP 1: LISTINGS PAGE -->
+<!-- ════════════════════════════════════════ -->
+
+<div class="page-label" style="margin: 16px 24px 0; display:block;">MOCKUP 1 — Listings Page</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="logo">Nieru<span>chomo</span>ściPL</div>
+  <div class="search-bar">
+    <input type="text" placeholder="Miasto, dzielnica, adres...">
+    <button>Szukaj</button>
+  </div>
+  <div class="header-links">
+    <a href="#">Sprzedaż</a>
+    <a href="#">Wynajem</a>
+    <a href="#">Nowe budynki</a>
+    <a href="#">Moje konto</a>
+  </div>
+</header>
+
+<!-- Filter bar -->
+<div class="filter-section">
+  <select class="sort-select">
+    <option>Typ: Mieszkanie</option>
+    <option>Dom</option>
+    <option>Kawalerka</option>
+  </select>
+  <div class="filter-pill active">
+    Cena: do 800k zł
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="filter-pill">
+    Pokoje: 2–4
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="filter-pill">
+    Powierzchnia
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="filter-pill">
+    Rynek: Wtórny
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="filter-pill">
+    Więcej filtrów
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+  </div>
+  <div class="results-meta">77 ofert</div>
+  <select class="sort-select">
+    <option>Sortuj: Najnowsze</option>
+    <option>Cena: rosnąco</option>
+    <option>Cena: malejąco</option>
+  </select>
+</div>
+
+<!-- Grid -->
+<div class="main">
+  <div class="grid">
+
+    <!-- Card 1 -->
+    <a class="card" href="#">
+      <div class="card-image">
+        <img src="https://ireland.apollo.olxcdn.com/v1/files/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmbiI6ImcydTFmejhydG55eC1BUEwifQ.OyT6YFZzW3okszuPIg_Bf4Be4IWo1mHazt4DoKVPauI/image" onerror="this.parentElement.innerHTML='<div class=no-photo>Brak zdjęcia</div>'" alt="">
+        <div class="card-badges">
+          <span class="badge badge-new">Nowe</span>
+          <span class="badge badge-secondary">Wtórny</span>
+        </div>
+        <div class="card-save">♡</div>
+        <div class="card-photo-count">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          13
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-price">1 999 000 zł</div>
+        <div class="card-ppsqm">17 690 zł/m²</div>
+        <div class="card-title">Aleja Kasztanowa za oknem • Metro 600m • 3 pokoje • balkon z widokiem</div>
+        <div class="card-stats">
+          <div class="stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            113 m²
+          </div>
+          <div class="stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v13h18V7"/><path d="M3 7l9-4 9 4"/><rect x="9" y="10" width="6" height="10"/></svg>
+            4 pokoje
+          </div>
+          <div class="stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+            p. 1/5
+          </div>
+        </div>
+        <div class="card-location">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Ursynów, Warszawa
+        </div>
+        <div class="card-source">otodom</div>
+      </div>
+    </a>
+
+    <!-- Card 2 -->
+    <a class="card" href="#">
+      <div class="card-image">
+        <div class="no-photo">Brak zdjęcia</div>
+        <div class="card-badges">
+          <span class="badge badge-primary">Pierwotny</span>
+        </div>
+        <div class="card-save">♡</div>
+      </div>
+      <div class="card-body">
+        <div class="card-price">479 000 zł</div>
+        <div class="card-ppsqm">8 138 zł/m²</div>
+        <div class="card-title">Święciechowa — lokal wykończony pod klucz z ogródkiem 225 m²</div>
+        <div class="card-stats">
+          <div class="stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            58.9 m²
+          </div>
+          <div class="stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v13h18V7"/><path d="M3 7l9-4 9 4"/><rect x="9" y="10" width="6" height="10"/></svg>
+            3 pokoje
+          </div>
+          <div class="stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+            Parter
+          </div>
+        </div>
+        <div class="card-location">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Święciechowa, leszczyński
+        </div>
+        <div class="card-source">otodom</div>
+      </div>
+    </a>
+
+    <!-- Card 3 — Reduced price -->
+    <a class="card" href="#">
+      <div class="card-image">
+        <div class="no-photo">Brak zdjęcia</div>
+        <div class="card-badges">
+          <span class="badge badge-reduced">Obniżona cena</span>
+        </div>
+        <div class="card-save">♡</div>
+      </div>
+      <div class="card-body">
+        <div class="card-price">298 000 zł</div>
+        <div class="card-ppsqm">10 996 zł/m²</div>
+        <div class="card-title">Os. Diamentowe — kawalerka w pełni wyposażona, 2 piętro z windą</div>
+        <div class="card-stats">
+          <div class="stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            27.1 m²
+          </div>
+          <div class="stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v13h18V7"/><path d="M3 7l9-4 9 4"/><rect x="9" y="10" width="6" height="10"/></svg>
+            Kawalerka
+          </div>
+          <div class="stat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+            p. 2/4
+          </div>
+        </div>
+        <div class="card-location">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Konin, wielkopolskie
+        </div>
+        <div class="card-source">otodom</div>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- MOCKUP 2: DETAIL PAGE -->
+  <!-- ════════════════════════════════════════ -->
+
+  <div class="page-label" style="margin-top: 48px;">MOCKUP 2 — Offer Detail Page</div>
+
+  <!-- Breadcrumb -->
+  <div style="font-size:13px; color:#888; margin: 16px 0 20px; display:flex; gap:6px; align-items:center;">
+    <a href="#" style="color:#00C97A; text-decoration:none;">Strona główna</a>
+    <span>›</span>
+    <a href="#" style="color:#00C97A; text-decoration:none;">Warszawa</a>
+    <span>›</span>
+    <a href="#" style="color:#00C97A; text-decoration:none;">Ursynów</a>
+    <span>›</span>
+    <span>Aleja Kasztanowa za oknem</span>
+  </div>
+
+  <!-- Hero gallery -->
+  <div class="detail-hero">
+    <div class="detail-hero-main">
+      <img src="https://ireland.apollo.olxcdn.com/v1/files/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmbiI6ImcydTFmejhydG55eC1BUEwifQ.OyT6YFZzW3okszuPIg_Bf4Be4IWo1mHazt4DoKVPauI/image" onerror="this.style.background='#ccc'" alt="">
+    </div>
+    <div class="detail-hero-side">
+      <div class="detail-hero-thumb"><div style="width:100%;height:100%;background:#bbb;"></div></div>
+      <div class="detail-hero-thumb more"><div style="width:100%;height:100%;background:#aaa;"></div></div>
+    </div>
+  </div>
+
+  <!-- Detail layout -->
+  <div class="detail-layout">
+    <!-- Left column -->
+    <div>
+      <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+        <span class="badge badge-secondary" style="font-size:12px; padding:4px 10px;">Rynek wtórny</span>
+        <span class="badge badge-secondary" style="font-size:12px; padding:4px 10px;">Mieszkanie</span>
+        <span class="badge badge-secondary" style="font-size:12px; padding:4px 10px;">Do zamieszkania</span>
+      </div>
+
+      <h1 style="font-size:22px; font-weight:800; color:#1a1a1a; line-height:1.3;">
+        Aleja Kasztanowa za oknem • Metro 600m • bez prowizji
+      </h1>
+      <div style="display:flex; align-items:center; gap:6px; margin-top:8px; color:#666; font-size:14px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Przy Bażantarni, Kabaty, Ursynów, Warszawa
+      </div>
+
+      <hr>
+
+      <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:0; border:1px solid #ececec; border-radius:10px; overflow:hidden; margin-bottom:24px;">
+        <div style="padding:14px 16px; border-right:1px solid #ececec;">
+          <div style="font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.5px;">Powierzchnia</div>
+          <div style="font-size:18px; font-weight:700; margin-top:4px;">113 m²</div>
+        </div>
+        <div style="padding:14px 16px; border-right:1px solid #ececec;">
+          <div style="font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.5px;">Pokoje</div>
+          <div style="font-size:18px; font-weight:700; margin-top:4px;">4</div>
+        </div>
+        <div style="padding:14px 16px; border-right:1px solid #ececec;">
+          <div style="font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.5px;">Piętro</div>
+          <div style="font-size:18px; font-weight:700; margin-top:4px;">1 / 5</div>
+        </div>
+        <div style="padding:14px 16px;">
+          <div style="font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.5px;">Czynsz</div>
+          <div style="font-size:18px; font-weight:700; margin-top:4px;">1 700 zł</div>
+        </div>
+      </div>
+
+      <h2 style="font-size:16px; font-weight:700; margin-bottom:12px;">Opis</h2>
+      <p style="font-size:14px; color:#444; line-height:1.7;">
+        Las Kabacki w bezpośrednim sąsiedztwie — spacery, bieganie i rower zaczynasz za progiem.
+        Metro Kabaty i Natolin ok. 600-700 m — centrum bez samochodu, w kilkanaście minut.
+        2 łazienki + osobna pralnia — codzienność bez kompromisów. Balkon z widokiem na Aleję Kasztanową — zieleń zamiast okien sąsiada.
+      </p>
+
+      <hr>
+
+      <h2 style="font-size:16px; font-weight:700; margin-bottom:12px;">Udogodnienia</h2>
+      <div class="amenity-grid">
+        <div class="amenity">🏗 Winda</div>
+        <div class="amenity">🌿 Balkon</div>
+        <div class="amenity">🚗 Parking</div>
+        <div class="amenity">📦 Komórka lokatorska</div>
+        <div class="amenity">🔥 Ogrzewanie gazowe</div>
+        <div class="amenity">🏙 Zamknięte osiedle</div>
+      </div>
+
+      <hr>
+
+      <h2 style="font-size:16px; font-weight:700; margin-bottom:12px;">Szczegóły ogłoszenia</h2>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid #ececec; border-radius:10px; overflow:hidden;">
+        <div style="padding:12px 16px; border-bottom:1px solid #ececec; border-right:1px solid #ececec;">
+          <div style="font-size:11px; color:#999;">Typ nieruchomości</div>
+          <div style="font-size:14px; font-weight:500; margin-top:2px;">Mieszkanie</div>
+        </div>
+        <div style="padding:12px 16px; border-bottom:1px solid #ececec;">
+          <div style="font-size:11px; color:#999;">Rynek</div>
+          <div style="font-size:14px; font-weight:500; margin-top:2px;">Wtórny</div>
+        </div>
+        <div style="padding:12px 16px; border-bottom:1px solid #ececec; border-right:1px solid #ececec;">
+          <div style="font-size:11px; color:#999;">Stan wykończenia</div>
+          <div style="font-size:14px; font-weight:500; margin-top:2px;">Do zamieszkania</div>
+        </div>
+        <div style="padding:12px 16px; border-bottom:1px solid #ececec;">
+          <div style="font-size:11px; color:#999;">Ogrzewanie</div>
+          <div style="font-size:14px; font-weight:500; margin-top:2px;">Gazowe</div>
+        </div>
+        <div style="padding:12px 16px; border-right:1px solid #ececec;">
+          <div style="font-size:11px; color:#999;">Rok budowy</div>
+          <div style="font-size:14px; font-weight:500; margin-top:2px;">1978</div>
+        </div>
+        <div style="padding:12px 16px;">
+          <div style="font-size:11px; color:#999;">Źródło</div>
+          <div style="font-size:14px; font-weight:500; margin-top:2px;">otodom.pl</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: price card -->
+    <div class="detail-price-card">
+      <div class="detail-price">1 999 000 zł</div>
+      <div class="detail-ppsqm">17 690 zł/m²</div>
+
+      <div style="display:flex; gap:8px; margin-top:16px; margin-bottom:4px;">
+        <button class="btn-primary">Zobacz ogłoszenie →</button>
+      </div>
+      <button class="btn-outline">♡ Zapisz ogłoszenie</button>
+
+      <div style="margin-top:20px; padding-top:16px; border-top:1px solid #ececec;">
+        <div style="font-size:12px; color:#999; text-align:center;">Ogłoszenie pochodzi z</div>
+        <div style="font-size:13px; font-weight:600; text-align:center; margin-top:4px; color:#555;">otodom.pl</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
