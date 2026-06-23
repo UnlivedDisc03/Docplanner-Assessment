@@ -9,13 +9,13 @@ export class OtodomScraper extends BaseScraper implements IScraper {
     const results: ScrapedRaw[] = []
     try {
       const indexPage = await this.newPage()
-      await indexPage.goto('https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/cala-polska?limit=24', { waitUntil: 'networkidle2', timeout: 30000 })
+      await indexPage.goto('https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/cala-polska?limit=36', { waitUntil: 'networkidle2', timeout: 30000 })
       try { await indexPage.click('[id*="onetrust-accept"]') } catch {}
       await indexPage.waitForSelector('article, [data-cy="listing-item"]', { timeout: 10000 }).catch(() => {})
 
       const urls: string[] = await indexPage.evaluate(() => {
         const links = Array.from(document.querySelectorAll('a[href*="/oferta/"]')) as HTMLAnchorElement[]
-        return [...new Set(links.map(a => a.href))].slice(0, 20)
+        return [...new Set(links.map(a => a.href))].slice(0, 35)
       })
       await indexPage.close()
 

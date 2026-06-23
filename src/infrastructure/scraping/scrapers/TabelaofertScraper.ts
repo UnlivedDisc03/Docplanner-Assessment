@@ -15,7 +15,7 @@ export class TabelaofertScraper extends BaseScraper implements IScraper {
         const links = Array.from(document.querySelectorAll('a')) as HTMLAnchorElement[]
         return [...new Set(
           links.map(a => a.href).filter(h => h.includes('tabelaofert.pl') && (h.includes('/oferta/') || h.includes('/mieszkan')))
-        )].slice(0, 20)
+        )].slice(0, 35)
       })
       await indexPage.close()
 

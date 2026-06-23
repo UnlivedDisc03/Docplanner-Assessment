@@ -1,16 +1,12 @@
 import type { IScraper } from './IScraper'
 import { OtodomScraper } from './scrapers/OtodomScraper'
 import { TabelaofertScraper } from './scrapers/TabelaofertScraper'
-import { OkolicaScraper } from './scrapers/OkolicaScraper'
-import { PropertystarScraper } from './scrapers/PropertystarScraper'
 import { RealtingScraper } from './scrapers/RealtingScraper'
 
 export class ScrapingOrchestrator {
   private scrapers: IScraper[] = [
     new OtodomScraper(),
     new TabelaofertScraper(),
-    new OkolicaScraper(),
-    new PropertystarScraper(),
     new RealtingScraper(),
   ]
 
