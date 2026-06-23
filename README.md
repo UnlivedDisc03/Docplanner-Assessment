@@ -47,6 +47,20 @@ npx prisma migrate dev
 
 ## Database Access
 
+### Via PhpStorm
+
+Go to **View → Tool Windows → Database**, click **+**, choose **Data Source → MySQL**, and enter:
+
+| Field    | Value      |
+|----------|------------|
+| Host     | localhost  |
+| Port     | 3306       |
+| User     | root       |
+| Password | root       |
+| Database | realestate |
+
+Click **Test Connection** — if it fails, make sure Docker is running (`docker compose up -d`).
+
 ### Via Adminer (web UI)
 
 Open http://localhost:8080 in your browser and log in:
