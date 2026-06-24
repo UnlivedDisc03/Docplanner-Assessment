@@ -8,7 +8,7 @@ function createPrismaClient(): PrismaClient {
   const match = url.match(/mysql:\/\/([^:]+):([^@]*)@([^:]+):(\d+)\/(.+)/)
   if (!match) throw new Error(`Invalid DATABASE_URL: ${url}`)
   const [, user, password, host, port, database] = match
-  const adapter = new PrismaMariaDb({ host, port: Number(port), user, password, database })
+  const adapter = new PrismaMariaDb({ host, port: Number(port), user, password, database, allowPublicKeyRetrieval: true })
   return new PrismaClient({ adapter } as ConstructorParameters<typeof PrismaClient>[0])
 }
 
